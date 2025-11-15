@@ -38,14 +38,14 @@
   },
   "homepage": "https://github.com/aliasmate/aliasmate#readme",
   "dependencies": {
+    "chalk": "^4.1.2",
     "commander": "^11.1.0",
-    "inquirer": "^8.2.6",
     "execa": "^5.1.1",
-    "chalk": "^4.1.2"
+    "inquirer": "^8.2.6"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/inquirer": "^8.2.10",
+    "@types/node": "^20.10.0",
     "typescript": "^5.3.3"
   },
   "files": [
