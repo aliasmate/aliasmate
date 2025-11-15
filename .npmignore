@@ -1,0 +1,26 @@
+# Development files
+.gitignore
+.npmignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+examples/
+docs/

@@ -1,0 +1,57 @@
+{
+  "name": "aliasmate",
+  "version": "1.0.0",
+  "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
+  "main": "dist/cli.js",
+  "bin": {
+    "aliasmate": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cli",
+    "command",
+    "alias",
+    "terminal",
+    "shell",
+    "productivity",
+    "command-line",
+    "developer-tools",
+    "automation",
+    "workflow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliasmate/aliasmate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aliasmate/aliasmate/issues"
+  },
+  "homepage": "https://github.com/aliasmate/aliasmate#readme",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "inquirer": "^8.2.6",
+    "execa": "^5.1.1",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/inquirer": "^8.2.10",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
+}
