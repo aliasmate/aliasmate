@@ -34,26 +34,26 @@ export interface ExecutionResult {
  * ```
  */
 export async function executeCommand(command: string, cwd: string): Promise<ExecutionResult> {
+  // Validate inputs
+  if (!command || !command.trim()) {
+    throw new Error('Command cannot be empty');
+  }
+
+  // Resolve the directory path
+  const resolvedCwd = path.resolve(cwd);
+
+  // Check if directory exists
+  if (!fs.existsSync(resolvedCwd)) {
+    throw new Error(`Directory does not exist: ${resolvedCwd}`);
+  }
+
+  // Check if it's actually a directory
+  const stats = fs.statSync(resolvedCwd);
+  if (!stats.isDirectory()) {
+    throw new Error(`Path is not a directory: ${resolvedCwd}`);
+  }
+
   try {
-    // Validate inputs
-    if (!command || !command.trim()) {
-      throw new Error('Command cannot be empty');
-    }
-
-    // Resolve the directory path
-    const resolvedCwd = path.resolve(cwd);
-
-    // Check if directory exists
-    if (!fs.existsSync(resolvedCwd)) {
-      throw new Error(`Directory does not exist: ${resolvedCwd}`);
-    }
-
-    // Check if it's actually a directory
-    const stats = fs.statSync(resolvedCwd);
-    if (!stats.isDirectory()) {
-      throw new Error(`Path is not a directory: ${resolvedCwd}`);
-    }
-
     // Execute the command using the user's shell
     // stdio: 'inherit' allows real-time output to terminal
     await execa(command, {

@@ -1,8 +1,8 @@
-import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { getAlias, setAlias } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
+import { promptMultiple, TextInputPrompt } from '../utils/prompts';
 
 /**
  * Edit an existing command interactively
@@ -31,7 +31,7 @@ export async function editCommand(name: string): Promise<void> {
     console.log(chalk.blue(`Editing command: ${name}\n`));
 
     // Prompt for new values
-    const answers: { command: string; directory: string } = await inquirer.prompt([
+    const prompts: TextInputPrompt[] = [
       {
         type: 'input',
         name: 'command',
@@ -58,7 +58,9 @@ export async function editCommand(name: string): Promise<void> {
           return true;
         },
       },
-    ]);
+    ];
+
+    const answers = await promptMultiple<{ command: string; directory: string }>(prompts);
 
     // Check if anything changed
     if (answers.command === alias.command && answers.directory === alias.directory) {

@@ -1,8 +1,8 @@
-import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { setAlias, aliasExists } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
+import { promptMultiple, promptConfirm, TextInputPrompt, ConfirmPrompt } from '../utils/prompts';
 
 /**
  * Interactively save a new command with prompts
@@ -21,7 +21,7 @@ import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/consta
 export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
   try {
     // Prompt for command details
-    const answers: { name: string; command: string; directory: string } = await inquirer.prompt([
+    const prompts: TextInputPrompt[] = [
       {
         type: 'input',
         name: 'name',
@@ -65,18 +65,22 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
           return true;
         },
       },
-    ]);
+    ];
+
+    const answers = await promptMultiple<{ name: string; command: string; directory: string }>(
+      prompts
+    );
 
     // Check if alias already exists
     if (aliasExists(answers.name)) {
-      const { confirm }: { confirm: boolean } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'confirm',
-          message: `A command named "${answers.name}" already exists. Overwrite?`,
-          default: false,
-        },
-      ]);
+      const confirmPrompt: ConfirmPrompt = {
+        type: 'confirm',
+        name: 'confirm',
+        message: `A command named "${answers.name}" already exists. Overwrite?`,
+        default: false,
+      };
+
+      const confirm = await promptConfirm(confirmPrompt);
 
       if (!confirm) {
         console.log(chalk.yellow('Save cancelled'));

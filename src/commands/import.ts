@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { loadAliases, saveAliases, aliasExists, AliasConfig, getConfigPath } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
+import { promptList, promptText, ListPrompt, TextInputPrompt } from '../utils/prompts';
 
 /**
  * Structure of the import file
@@ -128,46 +128,45 @@ export async function importCommand(filePath: string): Promise<void> {
         console.log(chalk.gray(`Importing: ${name}`));
         console.log(chalk.gray(`  ${importAliases[name].command}\n`));
 
-        const { action }: { action: string } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'action',
-            message: `What should we do with "${name}"?`,
-            choices: [
-              { name: 'Overwrite existing', value: 'overwrite' },
-              { name: 'Skip this command', value: 'skip' },
-              { name: 'Rename imported command', value: 'rename' },
-            ],
-          },
-        ]);
+        const actionPrompt: ListPrompt = {
+          type: 'list',
+          name: 'action',
+          message: `What should we do with "${name}"?`,
+          choices: [
+            { name: 'Overwrite existing', value: 'overwrite' },
+            { name: 'Skip this command', value: 'skip' },
+            { name: 'Rename imported command', value: 'rename' },
+          ],
+        };
+
+        const action = await promptList(actionPrompt);
 
         if (action === 'rename') {
-          const { newName }: { newName: string } = await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'newName',
-              message: 'Enter new name:',
-              default: `${name}_imported`,
-              validate: (input: string) => {
-                const trimmed = input.trim();
-                if (!trimmed) {
-                  return HELP_MESSAGES.emptyValue('Name');
-                }
-                if (trimmed.includes(' ')) {
-                  return HELP_MESSAGES.invalidName;
-                }
-                // Check for invalid characters
-                if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
-                  return 'Name can only contain letters, numbers, hyphens, and underscores';
-                }
-                if (aliasExists(trimmed) || resolutions[trimmed]) {
-                  return `Name "${trimmed}" is already taken`;
-                }
-                return true;
-              },
+          const renamePrompt: TextInputPrompt = {
+            type: 'input',
+            name: 'newName',
+            message: 'Enter new name:',
+            default: `${name}_imported`,
+            validate: (input: string) => {
+              const trimmed = input.trim();
+              if (!trimmed) {
+                return HELP_MESSAGES.emptyValue('Name');
+              }
+              if (trimmed.includes(' ')) {
+                return HELP_MESSAGES.invalidName;
+              }
+              // Check for invalid characters
+              if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+                return 'Name can only contain letters, numbers, hyphens, and underscores';
+              }
+              if (aliasExists(trimmed) || resolutions[trimmed]) {
+                return `Name "${trimmed}" is already taken`;
+              }
+              return true;
             },
-          ]);
+          };
 
+          const newName = await promptText(renamePrompt);
           resolutions[name] = { action: 'rename', newName: newName.trim() };
         } else {
           resolutions[name] = { action };
