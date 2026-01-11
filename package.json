@@ -1,6 +1,6 @@
 {
   "name": "aliasmate",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
   "main": "dist/cli.js",
   "bin": {
@@ -10,6 +10,11 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -24,7 +29,7 @@
     "automation",
     "workflow"
   ],
-  "author": "",
+  "author": "akhshyganesh",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
@@ -46,6 +51,10 @@
   "devDependencies": {
     "@types/inquirer": "^8.2.10",
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0",
     "typescript": "^5.3.3"
   },
   "files": [
