@@ -4,9 +4,16 @@ import {
   getHistoryConfigInstructions,
 } from '../src/utils/history';
 import * as fs from 'fs';
-import * as os from 'os';
+
+// Mock fs module properly
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+  readFileSync: jest.fn(),
+}));
 
 describe('history utility', () => {
+  const mockFs = fs as jest.Mocked<typeof fs>;
+
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.ALIASMATE_LAST_CMD;
@@ -23,7 +30,7 @@ describe('history utility', () => {
 
     it('should ignore aliasmate commands from env variable', () => {
       process.env.ALIASMATE_LAST_CMD = 'aliasmate list';
-      jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const result = getLastCommand();
 
@@ -31,7 +38,7 @@ describe('history utility', () => {
     });
 
     it('should handle missing history file', () => {
-      jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+      mockFs.existsSync.mockReturnValue(false);
 
       const result = getLastCommand();
 
@@ -40,9 +47,8 @@ describe('history utility', () => {
 
     it('should parse command from history file', () => {
       const mockHistory = 'echo line1\necho line2\necho line3';
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockReturnValue(mockHistory);
-      jest.spyOn(os, 'platform').mockReturnValue('darwin');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(mockHistory as any);
 
       const result = getLastCommand();
 
@@ -51,9 +57,8 @@ describe('history utility', () => {
 
     it('should skip aliasmate commands in history', () => {
       const mockHistory = 'echo test\naliasmate list\necho previous';
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockReturnValue(mockHistory);
-      jest.spyOn(os, 'platform').mockReturnValue('darwin');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(mockHistory as any);
 
       const result = getLastCommand();
 
@@ -62,8 +67,8 @@ describe('history utility', () => {
     });
 
     it('should handle empty history file', () => {
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockReturnValue('');
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue('' as any);
 
       const result = getLastCommand();
 
@@ -71,8 +76,8 @@ describe('history utility', () => {
     });
 
     it('should handle read errors', () => {
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockImplementation(() => {
         throw new Error('Read error');
       });
 

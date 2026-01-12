@@ -11,8 +11,25 @@ import { editCommand } from './commands/edit';
 import { exportCommand } from './commands/export';
 import { importCommand } from './commands/import';
 import { searchCommand } from './commands/search';
-import { getConfigPath, getConfigDir, loadAliases } from './storage';
+import { getConfigPath, getConfigDir, loadAliases, setAlias, aliasExists } from './storage';
 import { APP_VERSION } from './utils/constants';
+import { checkAndShowOnboarding } from './utils/onboarding';
+import { getDefaultLLMCommand } from './utils/llm-generator';
+
+// Check for first install or upgrade and show onboarding
+const onboardingShown = checkAndShowOnboarding();
+
+// Create default LLM command if it doesn't exist
+if (!aliasExists('llm')) {
+  const llmCmd = getDefaultLLMCommand();
+  setAlias(llmCmd.name, llmCmd.command, llmCmd.directory, llmCmd.pathMode);
+  
+  if (onboardingShown) {
+    console.log(chalk.green('✓ Default "llm" command has been created'));
+    console.log(chalk.gray(`  Run ${chalk.cyan('aliasmate run llm')} to generate llm.txt`));
+    console.log();
+  }
+}
 
 const program = new Command();
 

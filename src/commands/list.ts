@@ -45,10 +45,27 @@ export function listCommand(): void {
       // Check if directory still exists
       const dirExists = fs.existsSync(alias.directory);
       const dirIndicator = dirExists ? '' : chalk.red(' [DIR NOT FOUND]');
+      
+      // Get path mode with backward compatibility
+      const pathMode = alias.pathMode || 'saved';
+
+      // Truncate long commands for display
+      const maxCommandLength = 100;
+      let displayCommand = alias.command;
+      if (displayCommand.length > maxCommandLength) {
+        // Check if it's the llm command or other multi-line command
+        const firstLine = displayCommand.split('\n')[0];
+        if (firstLine.length > maxCommandLength) {
+          displayCommand = firstLine.substring(0, maxCommandLength) + '...';
+        } else {
+          displayCommand = firstLine + ' [...]';
+        }
+      }
 
       console.log(chalk.cyan(`  ${name}${dirIndicator}`));
-      console.log(chalk.gray(`    Command: ${alias.command}`));
+      console.log(chalk.gray(`    Command: ${displayCommand}`));
       console.log(chalk.gray(`    Directory: ${alias.directory}`));
+      console.log(chalk.gray(`    Path Mode: ${pathMode === 'saved' ? '📁 Saved' : '📍 Current'}`));
       if (alias.createdAt) {
         console.log(chalk.gray(`    Created: ${new Date(alias.createdAt).toLocaleString()}`));
       }

@@ -3,6 +3,13 @@ import * as path from 'path';
 import * as os from 'os';
 
 /**
+ * Path mode determines where a command should be executed
+ * - 'saved': Always run in the directory saved with the command
+ * - 'current': Run in the user's current working directory
+ */
+export type PathMode = 'saved' | 'current';
+
+/**
  * Represents a saved command alias with its metadata
  */
 export interface CommandAlias {
@@ -10,6 +17,8 @@ export interface CommandAlias {
   command: string;
   /** The working directory where the command should be executed */
   directory: string;
+  /** Path mode: 'saved' (use stored directory) or 'current' (use current directory) */
+  pathMode?: PathMode; // Optional for backward compatibility
   /** ISO 8601 timestamp when the command was created */
   createdAt: string;
   /** ISO 8601 timestamp when the command was last modified */
@@ -112,10 +121,16 @@ export function getAlias(name: string): CommandAlias | undefined {
  * @param name - The name of the alias
  * @param command - The shell command to save
  * @param directory - The working directory for the command
+ * @param pathMode - Optional path mode ('saved' or 'current'), defaults to 'saved'
  * @returns true if successful, false otherwise
  * @throws {Error} If the directory doesn't exist or isn't accessible
  */
-export function setAlias(name: string, command: string, directory: string): boolean {
+export function setAlias(
+  name: string, 
+  command: string, 
+  directory: string, 
+  pathMode: PathMode = 'saved'
+): boolean {
   // Validate inputs
   if (!name || !name.trim()) {
     throw new Error('Alias name cannot be empty');
@@ -136,6 +151,7 @@ export function setAlias(name: string, command: string, directory: string): bool
   aliases[name] = {
     command: command.trim(),
     directory: path.resolve(directory),
+    pathMode,
     createdAt: aliases[name]?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

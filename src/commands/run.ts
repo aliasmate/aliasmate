@@ -31,12 +31,32 @@ export async function runCommand(name: string, overridePath?: string): Promise<v
       process.exit(ExitCode.InvalidInput);
     }
 
-    // Determine the directory to run in
-    const runDir = overridePath ? resolvePath(overridePath, process.cwd()) : alias.directory;
+    // Determine the directory to run in based on path mode and override
+    let runDir: string;
+    
+    if (overridePath) {
+      // User explicitly provided a path override
+      runDir = resolvePath(overridePath, process.cwd());
+    } else {
+      // Use path mode to determine directory
+      const pathMode = alias.pathMode || 'saved'; // Default to 'saved' for backward compatibility
+      
+      if (pathMode === 'current') {
+        runDir = process.cwd();
+      } else {
+        runDir = alias.directory;
+      }
+    }
 
     // Show what we're about to run
     console.log(chalk.blue(`Running: ${alias.command}`));
     console.log(chalk.gray(`Directory: ${runDir}`));
+    const pathMode = alias.pathMode || 'saved';
+    if (overridePath) {
+      console.log(chalk.gray(`Path Mode: overridden`));
+    } else {
+      console.log(chalk.gray(`Path Mode: ${pathMode}`));
+    }
     console.log();
 
     // Execute the command

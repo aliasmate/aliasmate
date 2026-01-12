@@ -21,6 +21,7 @@ describe('run command', () => {
     const mockAlias = {
       command: 'echo test',
       directory: '/tmp',
+      pathMode: 'saved' as const,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
     };
@@ -34,9 +35,8 @@ describe('run command', () => {
     });
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    const result = await runCommand('test-alias');
+    await runCommand('test-alias');
 
-    expect(result).toBe(true);
     expect(storage.getAlias).toHaveBeenCalledWith('test-alias');
     expect(executor.executeCommand).toHaveBeenCalledWith('echo test', '/tmp');
     expect(consoleSpy).toHaveBeenCalled();

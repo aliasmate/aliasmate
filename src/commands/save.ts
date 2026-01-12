@@ -1,8 +1,14 @@
 import chalk from 'chalk';
-import { setAlias, aliasExists } from '../storage';
+import { setAlias, aliasExists, PathMode } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
-import { promptMultiple, promptConfirm, TextInputPrompt, ConfirmPrompt } from '../utils/prompts';
+import { 
+  promptMultiple, 
+  promptConfirm, 
+  TextInputPrompt, 
+  ConfirmPrompt, 
+  ListPrompt 
+} from '../utils/prompts';
 
 /**
  * Interactively save a new command with prompts
@@ -20,8 +26,8 @@ import { promptMultiple, promptConfirm, TextInputPrompt, ConfirmPrompt } from '.
  */
 export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
   try {
-    // Prompt for command details
-    const prompts: TextInputPrompt[] = [
+    // Prompt for command details including path mode
+    const prompts: (TextInputPrompt | ListPrompt)[] = [
       {
         type: 'input',
         name: 'name',
@@ -65,11 +71,29 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
           return true;
         },
       },
+      {
+        type: 'list',
+        name: 'pathMode',
+        message: 'Choose path mode:',
+        choices: [
+          {
+            name: 'Saved Directory (always run in the directory above)',
+            value: 'saved',
+          },
+          {
+            name: 'Current Directory (run in your current working directory)',
+            value: 'current',
+          },
+        ],
+      },
     ];
 
-    const answers = await promptMultiple<{ name: string; command: string; directory: string }>(
-      prompts
-    );
+    const answers = await promptMultiple<{ 
+      name: string; 
+      command: string; 
+      directory: string;
+      pathMode: PathMode;
+    }>(prompts);
 
     // Check if alias already exists
     if (aliasExists(answers.name)) {
@@ -88,14 +112,20 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
       }
     }
 
-    // Save the command
+    // Save the command with path mode
     try {
-      const success = setAlias(answers.name.trim(), answers.command, answers.directory);
+      const success = setAlias(
+        answers.name.trim(), 
+        answers.command, 
+        answers.directory,
+        answers.pathMode
+      );
 
       if (success) {
         console.log(chalk.green(`✓ ${SUCCESS_MESSAGES.saved(answers.name.trim())}`));
         console.log(chalk.gray(`  Command: ${answers.command}`));
         console.log(chalk.gray(`  Directory: ${answers.directory}`));
+        console.log(chalk.gray(`  Path Mode: ${answers.pathMode}`));
       } else {
         exitWithError(ERROR_MESSAGES.couldNotSave);
       }
