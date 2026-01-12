@@ -1,6 +1,6 @@
 {
   "name": "aliasmate",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
   "main": "dist/cli.js",
   "bin": {
@@ -10,7 +10,15 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2"
   },
   "keywords": [
     "cli",
@@ -24,7 +32,7 @@
     "automation",
     "workflow"
   ],
-  "author": "",
+  "author": "akhshyganesh",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
@@ -44,8 +52,16 @@
     "inquirer": "^8.2.6"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "@types/inquirer": "^8.2.10",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "jest": "^30.2.0",
+    "prettier": "^3.1.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.3.3"
   },
   "files": [

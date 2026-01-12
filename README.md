@@ -2,6 +2,11 @@
 
 A powerful CLI utility to save, manage, and re-run shell commands with their working directories. Never lose track of useful commands again!
 
+[![Version](https://img.shields.io/npm/v/aliasmate.svg)](https://www.npmjs.com/package/aliasmate)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
+[![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 ## Why Use AliasMate?
 
 As developers, we often spend time crafting complex commands, navigating to specific directories, and repeating the same sequences. AliasMate solves this by:
@@ -273,11 +278,78 @@ cd aliasmate
 # Install dependencies
 npm install
 
-# Link for local development
+# Build the project
+npm run build
+
+# Run type checking
+npm run typecheck
+
+# Lint the code
+npm run lint
+
+# Format code
+npm run format
+
+# Link for local testing
 npm link
 
 # Test the CLI
 aliasmate --help
+```
+
+### Development Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run build` | Compile TypeScript to JavaScript |
+| `npm run dev` | Watch mode for development |
+| `npm run typecheck` | Run TypeScript type checking |
+| `npm run lint` | Check code quality with ESLint |
+| `npm run lint:fix` | Auto-fix ESLint issues |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check if code is formatted |
+
+### Code Quality
+
+AliasMate is built with modern development practices:
+
+- ✅ **TypeScript** with strict mode enabled
+- ✅ **ESLint** for code quality enforcement
+- ✅ **Prettier** for consistent formatting
+- ✅ **Comprehensive JSDoc** documentation
+- ✅ **Centralized error handling** with proper exit codes
+- ✅ **Zero type safety warnings** in production code
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Project Structure
+
+```
+aliasmate/
+├── src/
+│   ├── cli.ts              # CLI entry point
+│   ├── commands/           # Command implementations
+│   │   ├── prev.ts        # Save from history
+│   │   ├── run.ts         # Execute commands
+│   │   ├── save.ts        # Interactive save
+│   │   ├── list.ts        # Display all
+│   │   ├── edit.ts        # Modify commands
+│   │   ├── delete.ts      # Remove commands
+│   │   ├── export.ts      # Backup to JSON
+│   │   └── import.ts      # Restore from JSON
+│   ├── storage/
+│   │   └── index.ts       # Config persistence
+│   └── utils/
+│       ├── constants.ts   # Shared constants
+│       ├── errors.ts      # Error handling
+│       ├── executor.ts    # Command execution
+│       ├── history.ts     # Shell integration
+│       └── paths.ts       # Path utilities
+├── dist/                   # Compiled output
+└── docs/
+    ├── CONTRIBUTING.md    # Contributor guide
+    ├── DEV_GUIDE.md      # Quick reference
+    └── CLEANUP_SUMMARY.md # Code quality report
 ```
 
 ## License
@@ -286,7 +358,59 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! We appreciate:
+
+- 🐛 Bug reports and fixes
+- ✨ Feature suggestions and implementations
+- 📝 Documentation improvements
+
+**Maintainer**: AliasMate Contributors
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for version history and release notes.
+
+## Support
+
+- 📖 [Documentation](./README.md)
+- 🐛 [Issue Tracker](https://github.com/aliasmate/aliasmate/issues)
+- 💬 [Discussions](https://github.com/aliasmate/aliasmate/discussions)
+
+---
+
+**⭐ If you find AliasMate helpful, please consider giving it a star on GitHub!**
+- 🎨 Code quality enhancements
+
+Before contributing, please:
+
+1. Read our [Contributing Guide](./CONTRIBUTING.md)
+2. Check existing issues and pull requests
+3. Follow the code style (ESLint + Prettier)
+4. Add tests for new features (when applicable)
+5. Update documentation as needed
+
+### Quick Start for Contributors
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/aliasmate.git
+cd aliasmate
+
+# Install dependencies
+npm install
+
+# Make your changes, then:
+npm run format      # Format code
+npm run lint        # Check for issues
+npm run typecheck   # Verify types
+npm run build       # Build project
+
+# Test locally
+npm link
+aliasmate --help
+```
+
+See [DEV_GUIDE.md](./DEV_GUIDE.md) for detailed development workflows.
 
 ## Author
 
