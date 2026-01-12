@@ -23,12 +23,15 @@ Whether you're a solo developer or part of a team, AliasMate helps you streamlin
 
 - 🚀 **Save previous commands** from shell history with one simple command
 - 📂 **Remember working directories** where commands should be executed
+- 🎯 **Path mode selection** - Choose between saved directory or current directory execution
 - ⚡ **Quick execution** of saved commands with optional path override
 - 📝 **Interactive save** with prompts for command and path
 - 📋 **List all saved commands** with their details
 - ✏️ **Edit commands** interactively
 - 🗑️ **Delete unwanted commands**
 - 📤 **Export/Import** commands for backup or sharing
+- 🤖 **LLM Integration** - Default command to generate comprehensive documentation
+- 🎉 **Onboarding experience** - Welcome tour for first-time users
 - 🎨 **Beautiful colored output** for better readability
 - 🔄 **Cross-platform** support (Linux, macOS, Windows)
 
@@ -43,7 +46,9 @@ npm i -g aliasmate
 ## Getting Started
 
 1. **Install AliasMate** using the command above.
-2. **Save a command**: After running any useful command in your terminal, save it with `aliasmate prev <name>`. For example:
+2. **Welcome Tour**: On first run, you'll see a helpful welcome message and quick tour explaining how AliasMate works.
+3. **Default LLM Command**: A default "llm" command is automatically created that generates comprehensive documentation for AI assistants.
+4. **Save a command**: After running any useful command in your terminal, save it with `aliasmate prev <name>`. For example:
    ```bash
    npm run build
    aliasmate prev build
@@ -108,6 +113,62 @@ You'll be prompted for:
 - Command name
 - Command to save
 - Working directory (defaults to current directory)
+- **Path mode** (NEW): Choose whether to run in saved directory or current directory
+
+### Path Mode Feature
+
+AliasMate now supports two path modes for each saved command:
+
+#### Saved Directory Mode (Default)
+Commands always run in the directory where they were saved. Perfect for project-specific commands.
+
+```bash
+# Save a build command for a specific project
+cd /path/to/my-project
+npm run build
+aliasmate prev build
+
+# Later, run from anywhere - it executes in /path/to/my-project
+cd ~
+aliasmate run build  # Runs in /path/to/my-project
+```
+
+#### Current Directory Mode
+Commands run in your current working directory. Ideal for general-purpose utilities.
+
+```bash
+# Save a command with current directory mode
+aliasmate save
+# Enter name: lint
+# Enter command: eslint .
+# Enter directory: /any/path (doesn't matter)
+# Choose: Current Directory
+
+# Later, runs in whichever directory you're in
+cd /path/to/project-a
+aliasmate run lint  # Lints project-a
+
+cd /path/to/project-b
+aliasmate run lint  # Lints project-b
+```
+
+You can change the path mode anytime using `aliasmate edit <name>`.
+
+### Generate LLM Documentation
+
+AliasMate includes a default command that generates comprehensive documentation for AI assistants:
+
+```bash
+aliasmate run llm
+```
+
+This creates an `llm.txt` file in your current directory containing:
+- Complete feature documentation
+- All available commands and their usage
+- Best practices and examples
+- Integration tips for AI assistants
+
+Share this file with AI assistants like ChatGPT or Claude for better help with AliasMate!
 
 ### List All Saved Commands
 

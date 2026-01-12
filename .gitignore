@@ -29,6 +29,9 @@ coverage/
 tmp/
 temp/
 
+# Generated documentation
+llm.txt
+
 # Environment
 .env
 .env.local

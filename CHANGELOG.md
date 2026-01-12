@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-12
+
+### Added
+- **Onboarding Experience**
+  - Welcome message and tour for first-time users
+  - Version upgrade notifications with new feature highlights
+  - Onboarding state tracking to avoid repeated messages
+  - Pro tips and helpful guidance for new users
+  - Installation date tracking
+
+- **Path Mode Feature**
+  - New `pathMode` option for each saved command (`saved` or `current`)
+  - "Saved Directory" mode: Commands run in their saved directory (default, backward compatible)
+  - "Current Directory" mode: Commands run in user's current working directory
+  - Path mode selection during `aliasmate save` command
+  - Path mode editing via `aliasmate edit` command
+  - Path mode display in `aliasmate list` output with icons (📁 Saved / 📍 Current)
+  - Path mode indicator when running commands
+  - Backward compatibility with existing commands (defaults to 'saved' mode)
+
+- **LLM Integration**
+  - Default "llm" command automatically created on first install
+  - Generates comprehensive `llm.txt` documentation file
+  - Includes all features, commands, best practices, and examples
+  - Designed for sharing with AI assistants (ChatGPT, Claude, etc.)
+  - Uses "current" path mode so users can generate the file anywhere
+  - 267 lines of detailed documentation
+
+- **Enhanced User Experience**
+  - More informative output when saving commands with `prev` (shows path mode)
+  - Path mode hint in save confirmation messages
+  - Clear visual indicators for path modes in list output
+  - Better explanation of path modes in interactive prompts
+
+### Changed
+- **API Changes**
+  - `CommandAlias` interface now includes optional `pathMode` field
+  - `setAlias()` function now accepts optional `pathMode` parameter (defaults to 'saved')
+  - `runCommand()` now respects path mode when no override path is provided
+  - All command operations preserve backward compatibility
+
+- **Improvements**
+  - Enhanced list command output with path mode information
+  - Better visual hierarchy in command listings
+  - Improved help messages explaining path modes
+  - More descriptive prompts in interactive commands
+
+### Fixed
+- TypeScript compilation warnings for unused imports
+
 ## [1.2.0] - 2026-01-11
 
 ### Added
