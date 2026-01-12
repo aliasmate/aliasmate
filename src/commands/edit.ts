@@ -1,8 +1,8 @@
 import chalk from 'chalk';
-import { getAlias, setAlias } from '../storage';
+import { getAlias, setAlias, PathMode } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
-import { promptMultiple, TextInputPrompt } from '../utils/prompts';
+import { promptMultiple, TextInputPrompt, ListPrompt } from '../utils/prompts';
 
 /**
  * Edit an existing command interactively
@@ -30,8 +30,8 @@ export async function editCommand(name: string): Promise<void> {
 
     console.log(chalk.blue(`Editing command: ${name}\n`));
 
-    // Prompt for new values
-    const prompts: TextInputPrompt[] = [
+    // Prompt for new values including path mode
+    const prompts: (TextInputPrompt | ListPrompt)[] = [
       {
         type: 'input',
         name: 'command',
@@ -58,24 +58,49 @@ export async function editCommand(name: string): Promise<void> {
           return true;
         },
       },
+      {
+        type: 'list',
+        name: 'pathMode',
+        message: 'Path mode:',
+        choices: [
+          {
+            name: 'Saved Directory (always run in the directory above)',
+            value: 'saved',
+          },
+          {
+            name: 'Current Directory (run in your current working directory)',
+            value: 'current',
+          },
+        ],
+      },
     ];
 
-    const answers = await promptMultiple<{ command: string; directory: string }>(prompts);
+    const answers = await promptMultiple<{ 
+      command: string; 
+      directory: string;
+      pathMode: PathMode;
+    }>(prompts);
 
     // Check if anything changed
-    if (answers.command === alias.command && answers.directory === alias.directory) {
+    const currentPathMode = alias.pathMode || 'saved'; // Default to 'saved' for backward compatibility
+    if (
+      answers.command === alias.command && 
+      answers.directory === alias.directory &&
+      answers.pathMode === currentPathMode
+    ) {
       console.log(chalk.yellow('No changes made'));
       return;
     }
 
-    // Update the alias
+    // Update the alias with path mode
     try {
-      const success = setAlias(name, answers.command, answers.directory);
+      const success = setAlias(name, answers.command, answers.directory, answers.pathMode);
 
       if (success) {
         console.log(chalk.green(`✓ ${SUCCESS_MESSAGES.updated(name)}`));
         console.log(chalk.gray(`  Command: ${answers.command}`));
         console.log(chalk.gray(`  Directory: ${answers.directory}`));
+        console.log(chalk.gray(`  Path Mode: ${answers.pathMode}`));
       } else {
         exitWithError(ERROR_MESSAGES.couldNotUpdate);
       }

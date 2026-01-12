@@ -46,14 +46,15 @@ export function prevCommand(name: string, cwd: string = process.cwd()): void {
       );
     }
 
-    // Save the command with the current directory
+    // Save the command with the current directory (default to 'saved' path mode for prev command)
     try {
-      const success = setAlias(name, lastCommand, cwd);
+      const success = setAlias(name, lastCommand, cwd, 'saved');
 
       if (success) {
         console.log(chalk.green(`✓ ${SUCCESS_MESSAGES.saved(name)}`));
         console.log(chalk.gray(`  Command: ${lastCommand}`));
         console.log(chalk.gray(`  Directory: ${cwd}`));
+        console.log(chalk.gray(`  Path Mode: saved (use 'aliasmate edit ${name}' to change)`));
       } else {
         exitWithError(ERROR_MESSAGES.couldNotSave);
       }
