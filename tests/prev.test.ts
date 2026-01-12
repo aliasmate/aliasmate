@@ -24,7 +24,7 @@ describe('prev command', () => {
 
     prevCommand('prev-alias', '/tmp');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo previous', '/tmp');
+    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo previous', '/tmp', 'saved');
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -44,7 +44,7 @@ describe('prev command', () => {
 
     prevCommand('prev-alias');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo test', cwd);
+    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo test', cwd, 'saved');
   });
 
   it('should handle errors during save', () => {

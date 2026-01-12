@@ -2,9 +2,6 @@ import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals
 import { editCommand } from '../src/commands/edit';
 import * as storage from '../src/storage';
 import * as prompts from '../src/utils/prompts';
-import * as inquirer from 'inquirer';
-
-jest.mock('inquirer');
 
 describe('edit command', () => {
   let exitSpy: jest.SpiedFunction<typeof process.exit>;
@@ -24,6 +21,7 @@ describe('edit command', () => {
     const mockAlias = {
       command: 'echo old',
       directory: '/old',
+      pathMode: 'saved' as const,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
     };
@@ -32,60 +30,54 @@ describe('edit command', () => {
     jest.spyOn(prompts, 'promptMultiple').mockResolvedValue({
       command: 'echo new',
       directory: '/new',
+      pathMode: 'saved' as const,
     });
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    const result = await editCommand('test-alias');
+    await editCommand('test-alias');
 
-    expect(result).toBe(true);
-    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo new', '/new');
+    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo new', '/new', 'saved');
     expect(consoleSpy).toHaveBeenCalled();
   });
 
-  it('should return false when alias does not exist', async () => {
+  it('should exit when alias does not exist', async () => {
     jest.spyOn(storage, 'getAlias').mockReturnValue(undefined);
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => {});
 
     await expect(editCommand('nonexistent')).rejects.toThrow('process.exit');
   });
 
-  it('should prompt for alias selection when name is empty', async () => {
-    const mockAliases = {
-      'test-alias': {
-        command: 'echo test',
-        directory: '/test',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
-      },
+  it('should not change anything when user keeps same values', async () => {
+    const mockAlias = {
+      command: 'echo test',
+      directory: '/test',
+      pathMode: 'saved' as const,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
     };
 
-    jest.spyOn(storage, 'loadAliases').mockReturnValue(mockAliases);
-    jest.spyOn(inquirer, 'prompt').mockResolvedValue({ name: 'test-alias' });
-    jest.spyOn(storage, 'getAlias').mockReturnValue(mockAliases['test-alias']);
+    jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
     jest.spyOn(prompts, 'promptMultiple').mockResolvedValue({
-      command: 'echo new',
-      directory: '/new',
+      command: 'echo test',
+      directory: '/test',
+      pathMode: 'saved' as const,
     });
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await editCommand('');
+    await editCommand('test-alias');
 
-    expect(inquirer.prompt).toHaveBeenCalled();
-    expect(storage.setAlias).toHaveBeenCalled();
-  });
-
-  it('should handle no aliases available', async () => {
-    jest.spyOn(storage, 'loadAliases').mockReturnValue({});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-
-    await expect(editCommand('')).rejects.toThrow('process.exit');
+    expect(storage.setAlias).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No changes'));
   });
 
   it('should pre-fill current values in prompts', async () => {
     const mockAlias = {
       command: 'echo test',
       directory: '/test',
+      pathMode: 'saved' as const,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
     };
@@ -94,8 +86,9 @@ describe('edit command', () => {
     const promptSpy = jest.spyOn(prompts, 'promptMultiple').mockResolvedValue({
       command: 'echo test',
       directory: '/test',
+      pathMode: 'saved' as const,
     });
-    jest.spyOn(storage, 'setAlias').mockReturnValue(true);
+    jest.spyOn(console, 'log').mockImplementation(() => {});
 
     await editCommand('test-alias');
 
