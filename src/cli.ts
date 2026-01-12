@@ -16,21 +16,6 @@ import { APP_VERSION } from './utils/constants';
 import { checkAndShowOnboarding } from './utils/onboarding';
 import { getDefaultLLMCommand } from './utils/llm-generator';
 
-// Check for first install or upgrade and show onboarding
-const onboardingShown = checkAndShowOnboarding();
-
-// Create default LLM command if it doesn't exist
-if (!aliasExists('llm')) {
-  const llmCmd = getDefaultLLMCommand();
-  setAlias(llmCmd.name, llmCmd.command, llmCmd.directory, llmCmd.pathMode);
-  
-  if (onboardingShown) {
-    console.log(chalk.green('✓ Default "llm" command has been created'));
-    console.log(chalk.gray(`  Run ${chalk.cyan('aliasmate run llm')} to generate llm.txt`));
-    console.log();
-  }
-}
-
 const program = new Command();
 
 program
@@ -161,10 +146,29 @@ process.on('unhandledRejection', (reason: unknown) => {
   process.exit(1);
 });
 
+// Check for first install or upgrade and show onboarding BEFORE parsing
+// This runs on EVERY invocation, but only shows messages on first install or upgrade
+const onboardingShown = checkAndShowOnboarding();
+
+// Create default LLM command if it doesn't exist
+if (!aliasExists('llm')) {
+  const llmCmd = getDefaultLLMCommand();
+  setAlias(llmCmd.name, llmCmd.command, llmCmd.directory, llmCmd.pathMode);
+  
+  if (onboardingShown) {
+    console.log(chalk.green('✓ Default "llm" command has been created'));
+    console.log(chalk.gray(`  Run ${chalk.cyan('aliasmate run llm')} to generate llm.txt`));
+    console.log();
+  }
+}
+
+// Handle no arguments case before parsing
+if (!process.argv.slice(2).length) {
+  if (!onboardingShown) {
+    program.outputHelp();
+  }
+  process.exit(0);
+}
+
 // Parse command line arguments
 program.parse(process.argv);
-
-// Show help if no arguments provided
-if (!process.argv.slice(2).length) {
-  program.outputHelp();
-}
