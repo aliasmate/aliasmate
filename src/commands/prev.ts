@@ -24,11 +24,18 @@ export function prevCommand(name: string, cwd: string = process.cwd()): void {
 
     if (!lastCommand) {
       console.error(chalk.red(`Error: ${ERROR_MESSAGES.historyNotAvailable}`));
-      console.log(chalk.yellow('\nTroubleshooting:'));
-      console.log(chalk.gray('1. Make sure your shell history is enabled'));
-      console.log(chalk.gray('2. For real-time history capture, configure your shell:'));
-      console.log(chalk.gray(`   ${getHistoryConfigInstructions()}`));
-      console.log(chalk.gray('3. Or use "aliasmate save" to manually enter the command'));
+      console.log(chalk.yellow('\nWhy this happens:'));
+      console.log(chalk.gray('Most shells only write commands to history when the shell exits.'));
+      console.log(chalk.gray('This means recent commands may not be available yet.'));
+      console.log(chalk.yellow('\nSolution (Recommended):'));
+      console.log(chalk.gray('Configure your shell for real-time history writing:'));
+      console.log(chalk.cyan(`   ${getHistoryConfigInstructions()}`));
+      console.log(chalk.yellow('\nAlternative:'));
+      console.log(chalk.gray('Use') + chalk.cyan(' aliasmate save ') + chalk.gray('to manually enter the command'));
+      console.log(chalk.yellow('\nWhat you can do right now:'));
+      console.log(chalk.gray('1. Configure your shell as shown above'));
+      console.log(chalk.gray('2. Close and reopen your terminal'));
+      console.log(chalk.gray('3. Try running your command again, then use') + chalk.cyan(' aliasmate prev'));
       process.exit(ExitCode.GeneralError);
     }
 

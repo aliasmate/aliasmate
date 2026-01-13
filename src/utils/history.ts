@@ -108,8 +108,14 @@ export function getLastCommand(): string | null {
         line = line.substring(6).trim();
       }
 
-      // Skip aliasmate commands and empty lines
-      if (line && !line.startsWith('aliasmate') && !line.startsWith('am ')) {
+      // Skip aliasmate commands, exit commands, and empty lines
+      if (
+        line &&
+        !line.startsWith('aliasmate') &&
+        !line.startsWith('am ') &&
+        line !== 'exit' &&
+        line !== 'quit'
+      ) {
         return line;
       }
     }

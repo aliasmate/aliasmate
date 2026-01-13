@@ -43,6 +43,50 @@ Install globally via npm:
 npm i -g aliasmate
 ```
 
+## Shell Configuration (Recommended)
+
+For `aliasmate prev` to work reliably and capture commands immediately, configure your shell to write history in real-time:
+
+### For zsh users (macOS default, Linux):
+
+Add to `~/.zshrc`:
+```bash
+setopt INC_APPEND_HISTORY
+```
+
+Then reload:
+```bash
+source ~/.zshrc
+```
+
+### For bash users (Linux default, macOS optional):
+
+Add to `~/.bashrc`:
+```bash
+PROMPT_COMMAND="history -a"
+```
+
+Then reload:
+```bash
+source ~/.bashrc
+```
+
+### Why is this needed?
+
+**Without this configuration**, shells only write commands to the history file when the shell exits. This means:
+- If you run `npm run dev` and press `^C` to cancel it, then immediately run `aliasmate prev`, the command won't be in the history file yet
+- You'll see older commands captured instead (like `clear` or previous commands)
+
+**With this configuration**, every command is written to history immediately after execution, making `aliasmate prev` work perfectly every time.
+
+### Alternative: Use `aliasmate save`
+
+If you prefer not to configure shell history, you can always use the interactive save:
+```bash
+aliasmate save
+# Then enter your command manually
+```
+
 ## Getting Started
 
 1. **Install AliasMate** using the command above.
@@ -317,15 +361,31 @@ aliasmate import team-commands.json
 
 ### "Could not retrieve previous command from history"
 
-This happens when shell history is disabled or cannot be accessed. Make sure:
-- Your shell history is enabled
-- You have a history file (`~/.zsh_history` for zsh, `~/.bash_history` for bash)
+This happens when shell history is disabled or the command hasn't been written to the history file yet.
+
+**Common scenario**: You run a command, press `^C` to cancel it, and immediately run `aliasmate prev`, but it captures an older command (like `clear`) instead.
+
+**Why**: Most shells only write to history when the shell exits, not after each command.
+
+**Solution**: Configure real-time history writing (see [Shell Configuration](#shell-configuration-recommended) above):
+- **zsh**: Add `setopt INC_APPEND_HISTORY` to `~/.zshrc`
+- **bash**: Add `PROMPT_COMMAND="history -a"` to `~/.bashrc`
+
+**Quick fix**: Close and reopen your terminal, then try the command again.
+
+**Alternative**: Use `aliasmate save` to enter commands manually.
 
 ### Commands not executing properly
 
 - Verify the saved directory exists: `aliasmate list`
 - Check if the command requires environment variables or specific shell configuration
 - Try running the command manually in the saved directory first
+
+### History file not found
+
+Make sure your shell history is enabled:
+- Check for `~/.zsh_history` (zsh) or `~/.bash_history` (bash)
+- If missing, history may be disabled - check your shell configuration files
 
 ## Development
 
