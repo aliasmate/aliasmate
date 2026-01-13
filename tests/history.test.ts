@@ -66,6 +66,28 @@ describe('history utility', () => {
       expect(result).not.toContain('aliasmate');
     });
 
+    it('should skip exit commands in history', () => {
+      const mockHistory = 'echo previous\nexit\nnpm run dev';
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(mockHistory as any);
+
+      const result = getLastCommand();
+
+      // Should skip the exit command and return npm run dev (most recent non-exit)
+      expect(result).toBe('npm run dev');
+    });
+
+    it('should skip quit commands in history', () => {
+      const mockHistory = 'echo previous\nquit\ndocker compose up';
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(mockHistory as any);
+
+      const result = getLastCommand();
+
+      // Should skip the quit command and return docker compose up (most recent non-quit)
+      expect(result).toBe('docker compose up');
+    });
+
     it('should handle empty history file', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue('' as any);

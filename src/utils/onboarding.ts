@@ -125,6 +125,40 @@ function showUpgradeMessage(oldVersion: string, newVersion: string): void {
 }
 
 /**
+ * Display shell configuration instructions
+ */
+function showShellConfiguration(): void {
+  console.log(chalk.bold.yellow('⚙️  Shell Configuration (Recommended):'));
+  console.log();
+  console.log(chalk.gray('For') + chalk.cyan(' aliasmate prev ') + chalk.gray('to capture commands immediately,'));
+  console.log(chalk.gray('configure your shell to write history in real-time:'));
+  console.log();
+  
+  const shell = process.env.SHELL || '';
+  
+  if (shell.includes('zsh')) {
+    console.log(chalk.bold('For zsh users:'));
+    console.log(chalk.gray('Add to') + chalk.cyan(' ~/.zshrc') + chalk.gray(':'));
+    console.log(chalk.cyan('   setopt INC_APPEND_HISTORY'));
+    console.log(chalk.gray('Then run:') + chalk.cyan(' source ~/.zshrc'));
+  } else if (shell.includes('bash')) {
+    console.log(chalk.bold('For bash users:'));
+    console.log(chalk.gray('Add to') + chalk.cyan(' ~/.bashrc') + chalk.gray(':'));
+    console.log(chalk.cyan('   PROMPT_COMMAND="history -a"'));
+    console.log(chalk.gray('Then run:') + chalk.cyan(' source ~/.bashrc'));
+  } else {
+    console.log(chalk.bold('For zsh:'));
+    console.log(chalk.cyan('   setopt INC_APPEND_HISTORY') + chalk.gray(' (add to ~/.zshrc)'));
+    console.log(chalk.bold('For bash:'));
+    console.log(chalk.cyan('   PROMPT_COMMAND="history -a"') + chalk.gray(' (add to ~/.bashrc)'));
+  }
+  
+  console.log();
+  console.log(chalk.gray('Without this, history is only saved when the shell exits.'));
+  console.log();
+}
+
+/**
  * Display helpful tips after onboarding
  */
 function showHelpfulTips(): void {
@@ -151,6 +185,7 @@ export function checkAndShowOnboarding(): boolean {
   if (!state) {
     showWelcomeMessage();
     showQuickTour();
+    showShellConfiguration();
     showHelpfulTips();
     
     const newState: OnboardingState = {
