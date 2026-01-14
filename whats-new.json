@@ -140,5 +140,15 @@
         "Configuration directory now manages both aliases and metadata separately"
       ]
     }
+  },
+  "1.5.1": {
+    "version": "1.5.1",
+    "date": "2026-01-14",
+    "sections": {
+      "fixed": [
+        "Fixed a bug where llm.txt is stuck with initial version",
+        "Silently recreates llm command with the latest version"
+      ]
+    }
   }
 }
