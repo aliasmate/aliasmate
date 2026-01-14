@@ -11,6 +11,7 @@ import { editCommand } from './commands/edit';
 import { exportCommand } from './commands/export';
 import { importCommand } from './commands/import';
 import { searchCommand } from './commands/search';
+import { createChangelogCommand } from './commands/changelog';
 import { getConfigPath, getConfigDir, loadAliases, setAlias, aliasExists } from './storage';
 import { APP_VERSION } from './utils/constants';
 import { checkAndShowOnboarding } from './utils/onboarding';
@@ -100,6 +101,9 @@ program
     void importCommand(file);
   });
 
+// Add changelog command
+program.addCommand(createChangelogCommand());
+
 // config command - show config location
 program
   .command('config')
@@ -124,7 +128,8 @@ program.on('command:*', () => {
   console.log(chalk.gray('  list (ls)         - List all saved commands'));
   console.log(chalk.gray('  search <query>    - Search for commands'));
   console.log(chalk.gray('  edit <name>       - Edit a saved command'));
-  console.log(chalk.gray('  delete <name>     - Delete a saved command'));
+  console.log(chalk.gray('  dhangelog         - View version changelog'));
+  console.log(chalk.gray('  celete <name>     - Delete a saved command'));
   console.log(chalk.gray('  export <file>     - Export commands to JSON'));
   console.log(chalk.gray('  import <file>     - Import commands from JSON'));
   console.log(chalk.gray('  config            - Show config file location'));

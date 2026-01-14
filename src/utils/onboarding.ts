@@ -3,6 +3,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import { getConfigDir } from '../storage';
 import { APP_VERSION } from './constants';
+import { getUpgradeSummary } from './changelog';
 
 interface OnboardingState {
   version: string;
@@ -115,11 +116,32 @@ function showUpgradeMessage(oldVersion: string, newVersion: string): void {
   console.log();
   console.log(chalk.bold.green(`🎊 AliasMate upgraded from v${oldVersion} to v${newVersion}!`));
   console.log();
-  console.log(chalk.white("What's new:"));
-  console.log(chalk.gray('  • Environment variable capture: Save and restore command environment'));
-  console.log(chalk.gray('  • Security features: Automatic masking of sensitive variables (API keys, secrets)'));
-  console.log(chalk.gray('  • Smart filtering: Excludes system variables, keeps only user-defined vars'));
-  console.log(chalk.gray('  • Environment management: Edit, clear, and merge environment variables'));
+  
+  // Try to show cumulative changelog
+  try {
+    const highlights = getUpgradeSummary(oldVersion, newVersion);
+    
+    if (highlights.length > 0) {
+      console.log(chalk.white("What's new (highlights):"));
+      highlights.forEach((highlight) => {
+        console.log(chalk.gray(`  • ${highlight}`));
+      });
+      console.log();
+      console.log(chalk.yellow('For complete changelog, visit:'));
+      console.log(chalk.cyan('  https://github.com/aliasmate/aliasmate/blob/main/CHANGELOG.md'));
+      console.log();
+      console.log(chalk.gray('Or run:') + chalk.cyan(' aliasmate changelog'));
+    } else {
+      // Fallback if no changelog data
+      console.log(chalk.white("What's new:"));
+      console.log(chalk.gray('  Check CHANGELOG.md for details'));
+    }
+  } catch (error) {
+    // Fallback on error
+    console.log(chalk.white("What's new:"));
+    console.log(chalk.gray('  Check CHANGELOG.md for details'));
+  }
+  
   console.log();
   console.log(chalk.yellow('Run') + chalk.cyan(' aliasmate list ') + chalk.yellow('to see your commands'));
   console.log();
