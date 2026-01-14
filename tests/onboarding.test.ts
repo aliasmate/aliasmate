@@ -62,8 +62,8 @@ describe('onboarding system', () => {
 
     it('should not show onboarding for same version', () => {
       const currentState = {
-        version: '1.5.0',
-        lastShownVersion: '1.5.0',
+        version: '1.5.1',
+        lastShownVersion: '1.5.1',
         hasSeenWelcome: true,
         installDate: '2024-01-01T00:00:00.000Z',
       };
@@ -94,7 +94,7 @@ describe('onboarding system', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining('onboarding.json'),
-        expect.stringContaining('1.5.0'),
+        expect.stringContaining('1.5.1'),
         'utf8'
       );
     });
