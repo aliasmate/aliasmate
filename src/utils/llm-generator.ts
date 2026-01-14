@@ -28,6 +28,7 @@ AliasMate is a powerful CLI utility that saves, manages, and re-runs shell comma
 - Automatic directory switching to the saved location
 - Option to override execution directory (use current or saved path)
 - Support for both absolute and relative path overrides
+- Environment variable capture and restoration
 
 ### 3. Command Management
 - List all saved commands with full details
@@ -35,6 +36,7 @@ AliasMate is a powerful CLI utility that saves, manages, and re-runs shell comma
 - Edit existing commands interactively
 - Delete unwanted commands
 - Export/import commands for backup and team sharing
+- View changelog and version history
 
 ## Available Commands
 
@@ -42,6 +44,7 @@ AliasMate is a powerful CLI utility that saves, manages, and re-runs shell comma
 Save the previous command from shell history.
 - Automatically captures the last executed command
 - Saves current working directory
+- Optionally captures environment variables
 - Example: \`aliasmate prev build\`
 
 ### aliasmate run <name> [path]
@@ -49,6 +52,8 @@ Execute a saved command.
 - Runs in saved directory by default
 - Optional path parameter to override directory
 - Supports path mode (saved vs current directory)
+- Restores saved environment variables
+- Warns about environment variable differences
 - Example: \`aliasmate run build\` or \`aliasmate run build .\`
 
 ### aliasmate save
@@ -57,6 +62,7 @@ Interactively create a new saved command.
 - Prompts for command to execute
 - Prompts for working directory
 - Prompts for path mode preference
+- Optionally capture environment variables
 - Example: \`aliasmate save\`
 
 ### aliasmate list (alias: ls)
@@ -72,10 +78,7 @@ Search for commands by keyword.
 - Case-insensitive matching
 - Example: \`aliasmate search deploy\`
 
-### aliasmate edit <name>
-Modify an existing command.
-- Interactive prompts with current values
-- Update command text, directory, or path mode
+##Manage environment variables
 - Example: \`aliasmate edit build\`
 
 ### aliasmate delete <name> (alias: rm)
@@ -87,10 +90,32 @@ Remove a saved command.
 Export all commands to a JSON file.
 - Backup your commands
 - Share with team members
+- Includes environment variables (sensitive ones are masked)
 - Example: \`aliasmate export my-commands.json\`
 
 ### aliasmate import <file>
 Import commands from a JSON file.
+- Restore from backup
+- Load teammate's commands
+- Prompts before overwriting existing commands
+- Automatic backup created before import
+- Example: \`aliasmate import my-commands.json\`
+
+### aliasmate changelog (alias: changes)
+View version changelog and release notes.
+- View current version changes
+- View specific version changes
+- View cumulative changes between versions
+- Examples:
+  - \`aliasmate changelog\` - Current version
+  - \`aliasmate changelog --ver 1.3.0\` - Specific version
+  - \`aliasmate changelog --from 1.2.0\` - All changes since 1.2.0
+
+### aliasmate config
+Show configuration details.
+- Display config directory and file path
+- Show number of saved commands
+- Example: \`aliasmate config
 - Restore from backup
 - Load teammate's commands
 - Prompts before overwriting existing commands
@@ -99,7 +124,62 @@ Import commands from a JSON file.
 ### aliasmate llm
 Generate this llm.txt file (default command).
 - Creates comprehensive documentation
-- Can be shared with AI assistants
+- CEnvironment Variables Feature
+
+AliasMate can capture and restore environment variables along with your commands:
+
+### Automatic Capture
+- When saving commands with \`prev\` or \`save\`, optionally capture environment variables
+- Only user-defined variables are captured (system variables excluded)
+- Sensitive variables (API keys, tokens, passwords) are automatically detected
+
+### Security Features
+- Sensitive variables are masked in exports (e.g., \`API_KEY=abc***xy\`)
+- System variables (PATH, HOME, etc.) are filtered out
+- Onenv\`: Optional object containing environment variables
+- \`createdAt\`: ISO 8601 timestamp
+- \`updatedAt\`: ISO 8601 timestamp
+
+## Version History and Changelog
+
+AliasMate maintains a comprehensive changelog accessible via CLI:
+
+### Viewing Changes
+- \`aliasmate changelog\` - View current version changes
+- \`aliasmate changelog --ver 1.3.0\` - View specific version
+- \`aliasmate changelog --from 1.2.0 --to 1.4.0\` - Cumulative changes
+- \`aliasmate changelog --from 1.2.0\` - All changes since a version
+
+### Upgrade Notifications
+- Automatic upgrade detection on first run after update
+- Shows cumulative changes since your last version
+- Highlights key new features and improvements
+- Links to full changelog documentation
+
+### Version Information
+- Current version: \`aliasmate --version\`
+- Semantic versioning (major.minor.patch)
+- Regular updates with new features and bug fixesa is detected
+
+### Environment Restoration
+- Saved environment variables are restored when running commands
+- Variables are merged with current environment
+- Current environment takes precedence over saved values
+- Warnings shown if variables differ from saved values
+
+### Managing Environment Variables
+- Edit command to update environment variables
+- Select specific variables to keep or remove
+- Clear all environment variables from a command
+- View environment variables in command listings
+
+### Use Cases
+- Development with specific environment variables (\`NODE_ENV\`, \`DEBUG\`)
+- API testing with tokens and endpoints
+- Multi-environment deployments (dev, staging, prod)
+- Consistent tool configurations across team members
+
+## an be shared with AI assistants
 - Example: \`aliasmate run llm\`
 
 ## Path Mode Feature
@@ -121,6 +201,15 @@ You can choose the path mode when saving or editing a command.
 ## Configuration
 
 ### Storage Location
+6. **Environment Variables**: Capture when needed
+   - Use for commands that need specific env vars
+   - Review sensitive variables before saving
+   - Keep environment variables updated with \`edit\` command
+
+7. **Stay Updated**: Check changelog regularly
+   - Run \`aliasmate changelog\` to see new features
+   - Update to latest version for bug fixes and improvements
+
 - Config file: \`~/.config/aliasmate/config.json\`
 - Contains all saved commands and their metadata
 - JSON format for easy editing if needed
@@ -138,7 +227,18 @@ Each command contains:
 ### Development Workflows
 - Save complex build commands: \`aliasmate prev build-prod\`
 - Run test suites: \`aliasmate prev test-integration\`
-- Deploy applications: \`aliasmate prev deploy-staging\`
+- # Environment Variable Issues
+- Check if saved variables are still valid
+- Verify environment variable names and values
+- Use \`aliasmate edit <name>\` to update env vars
+- Clear environment variables if no longer needed
+
+### Version or Changelog Not Showing
+- Ensure you have the latest version installed
+- Run \`aliasmate changelog\` to view version history
+- Check internet connection for upgrade notifications
+
+##Deploy applications: \`aliasmate prev deploy-staging\`
 
 ### Multi-Project Management
 - Switch between projects easily
@@ -226,6 +326,22 @@ aliasmate prev dev
 
 # Save production build
 npm run build
+### Environment-Specific Commands
+\`\`\`bash
+# Development environment
+NODE_ENV=development npm start
+aliasmate prev dev-server
+# Captures NODE_ENV automatically
+
+# Staging deployment
+API_URL=https://staging.api.com npm run deploy
+aliasmate prev deploy-staging
+# Captures API_URL automatically
+
+# Check what's new
+aliasmate changelog --from 1.2.0
+\`\`\`
+
 aliasmate prev build
 
 # Save test suite

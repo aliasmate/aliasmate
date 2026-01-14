@@ -1,0 +1,125 @@
+{
+  "1.0.0": {
+    "version": "1.0.0",
+    "date": "2025-11-15",
+    "sections": {
+      "added": [
+        "Initial release with core functionality",
+        "`prev` command to save previous shell command",
+        "`run` command to execute saved commands",
+        "`save` command for interactive command saving",
+        "`list` (alias `ls`) command to display all saved commands",
+        "`edit` command to modify saved commands",
+        "`delete` (alias `rm`) command to remove saved commands",
+        "`export` command to backup commands to JSON",
+        "`import` command to restore commands from JSON",
+        "`config` command to show config file location",
+        "Cross-platform support (Linux, macOS, Windows)",
+        "Working directory preservation and override",
+        "Interactive conflict resolution for imports"
+      ]
+    }
+  },
+  "1.1.0": {
+    "version": "1.1.0",
+    "date": "2026-01-08",
+    "sections": {
+      "added": [
+        "ESLint configuration with TypeScript support",
+        "Prettier configuration for consistent code formatting",
+        "Comprehensive JSDoc documentation for all public functions",
+        "CONTRIBUTING.md with detailed contributor guidelines",
+        "DEV_GUIDE.md for quick development reference",
+        "Centralized error handling utilities",
+        "Custom error types and exit code enums"
+      ],
+      "changed": [
+        "Removed all `any` types, replaced with proper TypeScript interfaces",
+        "Standardized error handling across all commands",
+        "Improved type safety for inquirer prompt responses",
+        "Better code organization with centralized error utilities"
+      ],
+      "fixed": [
+        "Proper typing for execa error handling",
+        "Consistent exit codes across all error scenarios"
+      ]
+    }
+  },
+  "1.2.0": {
+    "version": "1.2.0",
+    "date": "2026-01-11",
+    "sections": {
+      "added": [
+        "`search` (alias `find`) command to search commands by name, text, or directory",
+        "Automatic backup creation before importing commands",
+        "Directory existence indicator in list output",
+        "Command creation timestamp display in list output",
+        "Exit code display for failed command executions",
+        "Comprehensive input validation for command names",
+        "Directory existence validation with warnings",
+        "Path normalization to absolute paths for consistency",
+        "Global uncaught exception handler"
+      ],
+      "changed": [
+        "Delete command now shows details of what will be deleted",
+        "Export command creates parent directories if they don't exist",
+        "Import command validates each alias structure before processing",
+        "All user inputs are trimmed before processing",
+        "Enhanced CLI help messages for unknown commands"
+      ],
+      "fixed": [
+        "Atomic write operations prevent config file corruption during saves",
+        "Proper validation of command names to prevent special characters",
+        "Input trimming prevents whitespace-related issues"
+      ]
+    }
+  },
+  "1.3.0": {
+    "version": "1.3.0",
+    "date": "2026-01-12",
+    "sections": {
+      "added": [
+        "Onboarding experience with welcome message for first-time users",
+        "Version upgrade notifications with feature highlights",
+        "Path Mode feature: Commands can run in saved or current directory",
+        "Path mode selection during `aliasmate save` command",
+        "Path mode display in list output with icons (📁 Saved / 📍 Current)",
+        "LLM Integration with automatic 'llm' command creation",
+        "Comprehensive llm.txt documentation file generation"
+      ],
+      "changed": [
+        "Enhanced list command output with path mode information",
+        "Better visual hierarchy in command listings",
+        "More informative output when saving commands"
+      ]
+    }
+  },
+  "1.3.1": {
+    "version": "1.3.1",
+    "date": "2026-01-12",
+    "sections": {
+      "fixed": [
+        "Onboarding display issue - now shows on first install or after upgrades",
+        "Onboarding displays on first run regardless of arguments provided",
+        "Welcome message appears before any command execution"
+      ]
+    }
+  },
+  "1.4.0": {
+    "version": "1.4.0",
+    "date": "2026-01-14",
+    "sections": {
+      "added": [
+        "Automated release script for version management",
+        "Cumulative changelog system with whats-new.json",
+        "`changelog` command to view version changes",
+        "Display cumulative changes for upgrade migrations",
+        "Version comparison utilities for semantic versioning"
+      ],
+      "changed": [
+        "Onboarding now shows cumulative changes during upgrades",
+        "Upgrade messages pull from structured changelog data"
+      ]
+    }
+  }
+}

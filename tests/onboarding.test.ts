@@ -62,8 +62,8 @@ describe('onboarding system', () => {
 
     it('should not show onboarding for same version', () => {
       const currentState = {
-        version: '1.3.1',
-        lastShownVersion: '1.3.1',
+        version: '1.4.0',
+        lastShownVersion: '1.4.0',
         hasSeenWelcome: true,
         installDate: '2024-01-01T00:00:00.000Z',
       };
@@ -94,7 +94,7 @@ describe('onboarding system', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining('onboarding.json'),
-        expect.stringContaining('1.3.1'),
+        expect.stringContaining('1.4.0'),
         'utf8'
       );
     });
@@ -163,9 +163,10 @@ describe('onboarding system', () => {
       checkAndShowOnboarding();
 
       const logCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-      const hasPathMode = logCalls.some(log => log.includes('Path mode'));
+      // Should show what's new or changelog link
+      const hasWhatsNew = logCalls.some(log => log.includes("What's new") || log.includes('changelog'));
       
-      expect(hasPathMode).toBe(true);
+      expect(hasWhatsNew).toBe(true);
     });
   });
 });

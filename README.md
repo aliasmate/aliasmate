@@ -24,15 +24,18 @@ Whether you're a solo developer or part of a team, AliasMate helps you streamlin
 - 🚀 **Save previous commands** from shell history with one simple command
 - 📂 **Remember working directories** where commands should be executed
 - 🎯 **Path mode selection** - Choose between saved directory or current directory execution
-- 🌍 **Environment variable capture** - Save and restore environment variables with commands (NEW!)
+- 🌍 **Environment variable capture** - Save and restore environment variables with commands
+- 🔒 **Security-focused** - Automatic masking of sensitive variables (API keys, tokens)
 - ⚡ **Quick execution** of saved commands with optional path override
 - 📝 **Interactive save** with prompts for command and path
 - 📋 **List all saved commands** with their details
-- ✏️ **Edit commands** interactively
+- 🔍 **Search commands** by name, text, or directory
+- ✏️ **Edit commands** interactively with environment variable management
 - 🗑️ **Delete unwanted commands**
 - 📤 **Export/Import** commands for backup or sharing
+- 📜 **Changelog viewer** - View version history and cumulative changes
 - 🤖 **LLM Integration** - Default command to generate comprehensive documentation
-- 🎉 **Onboarding experience** - Welcome tour for first-time users
+- 🎉 **Onboarding experience** - Welcome tour and upgrade notifications
 - 🎨 **Beautiful colored output** for better readability
 - 🔄 **Cross-platform** support (Linux, macOS, Windows)
 
@@ -291,6 +294,86 @@ See where your commands are stored:
 aliasmate config
 ```
 
+### Environment Variables
+
+AliasMate can capture and restore environment variables along with your commands:
+
+#### Capturing Environment Variables
+
+When saving commands with `prev` or `save`, you'll be prompted to capture environment variables:
+
+```bash
+NODE_ENV=production npm run build
+aliasmate prev build-prod
+# Would you like to capture current environment variables? (y/n)
+```
+
+**What Gets Captured:**
+- ✅ User-defined environment variables (like `NODE_ENV`, `API_URL`, `DEBUG`)
+- ❌ System variables are filtered out (like `PATH`, `HOME`, `USER`)
+- 🔒 Sensitive variables are automatically detected and masked
+
+#### Security Features
+
+- **Automatic Detection**: Sensitive variables containing keywords like `KEY`, `SECRET`, `TOKEN`, `PASSWORD` are automatically identified
+- **Masked Exports**: When exporting, sensitive values are masked (e.g., `API_KEY=abc***xy`)
+- **Safe Sharing**: Share command exports with your team without exposing secrets
+
+#### Managing Environment Variables
+
+```bash
+# Edit a command to update environment variables
+aliasmate edit build-prod
+# Select which variables to keep or remove
+
+# View commands with their environment variables
+aliasmate list
+# Shows which commands have env vars saved
+```
+
+**Use Cases:**
+- Development/staging/production environment switching
+- API testing with different endpoints and tokens
+- Tool configuration (e.g., `DEBUG=*`, `VERBOSE=true`)
+- Multi-environment deployments
+
+**Example:**
+```bash
+# Development setup
+NODE_ENV=development API_URL=http://localhost:3000 npm start
+aliasmate prev dev-server
+
+# Run anywhere - environment is restored
+aliasmate run dev-server
+# Restores NODE_ENV and API_URL automatically
+```
+
+### Version History & Changelog
+
+View what's new and see changes between versions:
+
+```bash
+# View current version changes
+aliasmate changelog
+
+# View specific version
+aliasmate changelog --ver 1.3.0
+
+# View all changes between versions (upgrade path)
+aliasmate changelog --from 1.2.0 --to 1.4.0
+
+# View all changes since a version
+aliasmate changelog --from 1.2.0
+```
+
+**Automatic Upgrade Notifications:**
+When you upgrade AliasMate, you'll automatically see:
+- Summary of new features and improvements
+- Cumulative changes since your last version
+- Links to full documentation
+
+This ensures you never miss important features or fixes when upgrading!
+
 ## Configuration
 
 Commands are stored in:
@@ -301,15 +384,17 @@ Commands are stored in:
 
 | Command | Aliases | Description |
 |---------|---------|-------------|
-| `aliasmate prev <name>` | - | Save the previous command from shell history |
-| `aliasmate run <name> [path]` | - | Run a saved command (optionally in a different directory) |
-| `aliasmate save` | - | Interactively save a new command |
-| `aliasmate list` | `ls` | List all saved commands |
-| `aliasmate edit <name>` | - | Edit a saved command |
+| `aliasmate prev <name>` | - | Save the previous command from shell history (with optional env vars) |
+| `aliasmate run <name> [path]` | - | Run a saved command (restores env vars, optionally override directory) |
+| `aliasmate save` | - | Interactively save a new command (with optional env vars) |
+| `aliasmate list` | `ls` | List all saved commands (shows env var indicators) |
+| `aliasmate search <query>` | `find` | Search for commands by name, text, or directory |
+| `aliasmate edit <name>` | - | Edit a saved command (manage env vars, path mode, etc.) |
 | `aliasmate delete <name>` | `rm` | Delete a saved command |
-| `aliasmate export <file>` | - | Export commands to a JSON file |
-| `aliasmate import <file>` | - | Import commands from a JSON file |
-| `aliasmate config` | - | Show config file location |
+| `aliasmate export <file>` | - | Export commands to a JSON file (sensitive vars masked) |
+| `aliasmate import <file>` | - | Import commands from a JSON file (auto backup) |
+| `aliasmate changelog` | `changes` | View version changelog and release notes |
+| `aliasmate config` | - | Show config file location and command count |
 
 ## Examples
 
