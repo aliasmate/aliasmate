@@ -121,5 +121,24 @@
         "Upgrade messages pull from structured changelog data"
       ]
     }
+  },
+  "1.5.0": {
+    "version": "1.5.0",
+    "date": "2026-01-14",
+    "sections": {
+      "added": [
+        "Automatic version update checker that notifies users once per day when new versions are available",
+        "Beautiful CLI notification box with clear upgrade instructions",
+        "Smart error handling for offline scenarios - silently fails without disrupting workflow",
+        "Generic metadata storage system for application state (separate from command aliases)",
+        "Metadata file at ~/.config/aliasmate/metadata.json for persistent app state",
+        "5-second timeout on version checks to prevent blocking",
+        "Comprehensive test suite with 16 new tests for version checker and 6 for metadata storage"
+      ],
+      "changed": [
+        "Version checks run automatically but only notify once per day to avoid being intrusive",
+        "Configuration directory now manages both aliases and metadata separately"
+      ]
+    }
   }
 }
