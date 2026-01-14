@@ -57,7 +57,7 @@ describe('export command', () => {
 
   it('should handle write errors', () => {
     const mockAliases = {
-      'test': {
+      test: {
         command: 'echo test',
         directory: '/test',
         createdAt: '2024-01-01T00:00:00.000Z',
@@ -78,7 +78,7 @@ describe('export command', () => {
 
   it('should use default filename if not provided', () => {
     const mockAliases = {
-      'test': {
+      test: {
         command: 'echo test',
         directory: '/test',
         createdAt: '2024-01-01T00:00:00.000Z',
@@ -95,7 +95,7 @@ describe('export command', () => {
 
   it('should format JSON output correctly', () => {
     const mockAliases = {
-      'test': {
+      test: {
         command: 'echo test',
         directory: '/test',
         createdAt: '2024-01-01T00:00:00.000Z',
@@ -108,7 +108,7 @@ describe('export command', () => {
     // First call: check if file exists (false), second call: check if directory exists (true)
     mockFs.existsSync
       .mockReturnValueOnce(false) // file doesn't exist
-      .mockReturnValueOnce(true);  // directory exists
+      .mockReturnValueOnce(true); // directory exists
     mockFs.writeFileSync.mockReturnValue(undefined);
 
     exportCommand('/tmp/export.json');

@@ -5,7 +5,11 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { APP_VERSION } from '../utils/constants';
-import { displayCumulativeChanges, displayVersionChanges, getVersionChanges } from '../utils/changelog';
+import {
+  displayCumulativeChanges,
+  displayVersionChanges,
+  getVersionChanges,
+} from '../utils/changelog';
 
 /**
  * Create the changelog command
@@ -19,7 +23,7 @@ export function createChangelogCommand(): Command {
     .option('-f, --from <version>', 'Starting version (e.g., 1.2.0)')
     .option('-t, --to <version>', 'Ending version (defaults to current)')
     .option('--ver <version>', 'Show changes for a specific version')
-    .action((options) => {
+    .action((options: { ver?: string; from?: string; to?: string }) => {
       try {
         if (options.ver) {
           // Show specific version
@@ -41,10 +45,12 @@ export function createChangelogCommand(): Command {
             console.log(chalk.bold.cyan('\n📋 Current Version Changes\n'));
             displayVersionChanges(changes);
           } else {
-            console.log(chalk.yellow(`\nNo changelog data found for current version (${APP_VERSION})`));
+            console.log(
+              chalk.yellow(`\nNo changelog data found for current version (${APP_VERSION})`)
+            );
             console.log(chalk.gray('Check CHANGELOG.md for complete history\n'));
           }
-          
+
           // Show usage examples
           console.log(chalk.bold.yellow('\n💡 Usage Examples:\n'));
           console.log(chalk.gray('  View changes for a specific version:'));

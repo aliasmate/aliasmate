@@ -17,7 +17,7 @@ describe('search command', () => {
         createdAt: '2024-01-02T00:00:00.000Z',
         updatedAt: '2024-01-02T00:00:00.000Z',
       },
-      'different': {
+      different: {
         command: 'pwd',
         directory: '/tmp',
         createdAt: '2024-01-03T00:00:00.000Z',
@@ -36,13 +36,13 @@ describe('search command', () => {
 
   it('should find matching aliases by command', () => {
     const mockAliases = {
-      'list': {
+      list: {
         command: 'ls -la',
         directory: '/home',
         createdAt: '2024-01-01T00:00:00.000Z',
         updatedAt: '2024-01-01T00:00:00.000Z',
       },
-      'test': {
+      test: {
         command: 'echo test',
         directory: '/test',
         createdAt: '2024-01-02T00:00:00.000Z',
@@ -60,7 +60,7 @@ describe('search command', () => {
 
   it('should handle no matches found', () => {
     const mockAliases = {
-      'test': {
+      test: {
         command: 'echo test',
         directory: '/test',
         createdAt: '2024-01-01T00:00:00.000Z',
@@ -87,7 +87,7 @@ describe('search command', () => {
 
   it('should search case-insensitively', () => {
     const mockAliases = {
-      'TestAlias': {
+      TestAlias: {
         command: 'echo TEST',
         directory: '/test',
         createdAt: '2024-01-01T00:00:00.000Z',

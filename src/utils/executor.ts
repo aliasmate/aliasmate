@@ -35,8 +35,8 @@ export interface ExecutionResult {
  * ```
  */
 export async function executeCommand(
-  command: string, 
-  cwd: string, 
+  command: string,
+  cwd: string,
   env: NodeJS.ProcessEnv = process.env
 ): Promise<ExecutionResult> {
   // Validate inputs

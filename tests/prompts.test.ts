@@ -1,9 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import {
-  type TextInputPrompt,
-  type ConfirmPrompt,
-  type ListPrompt,
-} from '../src/utils/prompts';
+import { type TextInputPrompt, type ConfirmPrompt, type ListPrompt } from '../src/utils/prompts';
 
 describe('prompts', () => {
   describe('Type definitions', () => {
@@ -63,7 +59,7 @@ describe('prompts', () => {
   describe('Validation functions', () => {
     it('should support validation in TextInputPrompt', () => {
       const validateFn = (input: string) => input.trim().length > 0 || 'Cannot be empty';
-      
+
       const prompt: TextInputPrompt = {
         type: 'input',
         name: 'test',

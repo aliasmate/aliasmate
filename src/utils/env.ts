@@ -64,7 +64,7 @@ const SENSITIVE_PATTERNS = [
  * @returns true if the variable name matches sensitive patterns
  */
 export function isSensitiveEnvVar(varName: string): boolean {
-  return SENSITIVE_PATTERNS.some(pattern => pattern.test(varName));
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(varName));
 }
 
 /**
@@ -83,7 +83,7 @@ export function isSystemEnvVar(varName: string): boolean {
  */
 export function getUserEnvVars(env: NodeJS.ProcessEnv = process.env): Record<string, string> {
   const filtered: Record<string, string> = {};
-  
+
   for (const [key, value] of Object.entries(env)) {
     // Skip undefined values, system vars, and vars starting with npm_ or NODE_
     if (
@@ -96,7 +96,7 @@ export function getUserEnvVars(env: NodeJS.ProcessEnv = process.env): Record<str
       filtered[key] = value;
     }
   }
-  
+
   return filtered;
 }
 
@@ -111,7 +111,7 @@ export function categorizeEnvVars(env: Record<string, string>): {
 } {
   const sensitive: Record<string, string> = {};
   const safe: Record<string, string> = {};
-  
+
   for (const [key, value] of Object.entries(env)) {
     if (isSensitiveEnvVar(key)) {
       sensitive[key] = value;
@@ -119,7 +119,7 @@ export function categorizeEnvVars(env: Record<string, string>): {
       safe[key] = value;
     }
   }
-  
+
   return { sensitive, safe };
 }
 
@@ -136,7 +136,7 @@ export function mergeEnvVars(
 ): NodeJS.ProcessEnv {
   // Start with current env (keeps all system vars)
   const merged = { ...currentEnv };
-  
+
   // Add saved env vars (but current env takes precedence)
   for (const [key, value] of Object.entries(savedEnv)) {
     // Only add if not already in current env
@@ -144,7 +144,7 @@ export function mergeEnvVars(
       merged[key] = value;
     }
   }
-  
+
   return merged;
 }
 
@@ -159,7 +159,7 @@ export function getEnvOverrides(
   currentEnv: NodeJS.ProcessEnv = process.env
 ): Array<{ name: string; savedValue: string; currentValue: string }> {
   const overrides: Array<{ name: string; savedValue: string; currentValue: string }> = [];
-  
+
   for (const [key, savedValue] of Object.entries(savedEnv)) {
     const currentValue = currentEnv[key];
     if (currentValue !== undefined && currentValue !== savedValue) {
@@ -170,7 +170,7 @@ export function getEnvOverrides(
       });
     }
   }
-  
+
   return overrides;
 }
 
@@ -185,9 +185,7 @@ export function formatEnvVars(env: Record<string, string>, maxLength: number = 5
   return Object.entries(env)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => {
-      const truncated = value.length > maxLength 
-        ? `${value.substring(0, maxLength)}...` 
-        : value;
+      const truncated = value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
       return `${key}=${truncated}`;
     });
 }
@@ -199,12 +197,13 @@ export function formatEnvVars(env: Record<string, string>, maxLength: number = 5
  */
 export function maskSensitiveEnvVars(env: Record<string, string>): Record<string, string> {
   const masked: Record<string, string> = {};
-  
+
   for (const [key, value] of Object.entries(env)) {
     if (isSensitiveEnvVar(key)) {
       // Show first 3 chars and last 2 chars, mask the rest
       if (value.length > 8) {
-        masked[key] = `${value.substring(0, 3)}${'*'.repeat(value.length - 5)}${value.substring(value.length - 2)}`;
+        masked[key] =
+          `${value.substring(0, 3)}${'*'.repeat(value.length - 5)}${value.substring(value.length - 2)}`;
       } else {
         masked[key] = '*'.repeat(value.length);
       }
@@ -212,6 +211,6 @@ export function maskSensitiveEnvVars(env: Record<string, string>): Record<string
       masked[key] = value;
     }
   }
-  
+
   return masked;
 }

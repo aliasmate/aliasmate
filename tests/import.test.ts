@@ -67,7 +67,7 @@ describe('import command', () => {
   it('should handle conflicts with overwrite', async () => {
     const importData = {
       aliases: {
-        'existing': {
+        existing: {
           command: 'echo new',
           directory: '/new',
           createdAt: '2024-01-01T00:00:00.000Z',
@@ -98,7 +98,7 @@ describe('import command', () => {
   it('should handle conflicts with skip', async () => {
     const importData = {
       aliases: {
-        'existing': {
+        existing: {
           command: 'echo new',
           directory: '/new',
           createdAt: '2024-01-01T00:00:00.000Z',
@@ -130,7 +130,7 @@ describe('import command', () => {
   it('should handle conflicts with rename', async () => {
     const importData = {
       aliases: {
-        'existing': {
+        existing: {
           command: 'echo new',
           directory: '/new',
           createdAt: '2024-01-01T00:00:00.000Z',

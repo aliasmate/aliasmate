@@ -65,10 +65,9 @@ export function getVersionsInRange(fromVersion: string, toVersion: string): stri
   if (!data) return [];
 
   const allVersions = Object.keys(data).sort(compareVersions);
-  
+
   return allVersions.filter((version) => {
-    return compareVersions(version, fromVersion) >= 0 && 
-           compareVersions(version, toVersion) <= 0;
+    return compareVersions(version, fromVersion) >= 0 && compareVersions(version, toVersion) <= 0;
   });
 }
 
@@ -88,7 +87,7 @@ export function getVersionChanges(version: string): ChangelogEntry | null {
 export function getCumulativeChanges(fromVersion: string, toVersion: string): ChangelogEntry[] {
   const versions = getVersionsInRange(fromVersion, toVersion);
   const data = loadWhatsNewData();
-  
+
   if (!data) return [];
 
   return versions
@@ -119,23 +118,23 @@ export function displayVersionChanges(entry: ChangelogEntry): void {
   if (entry.sections.added) {
     console.log(formatSection('Added', entry.sections.added, '✨'));
   }
-  
+
   if (entry.sections.changed) {
     console.log(formatSection('Changed', entry.sections.changed, '🔄'));
   }
-  
+
   if (entry.sections.fixed) {
     console.log(formatSection('Fixed', entry.sections.fixed, '🐛'));
   }
-  
+
   if (entry.sections.deprecated) {
     console.log(formatSection('Deprecated', entry.sections.deprecated, '⚠️'));
   }
-  
+
   if (entry.sections.removed) {
     console.log(formatSection('Removed', entry.sections.removed, '🗑️'));
   }
-  
+
   if (entry.sections.security) {
     console.log(formatSection('Security', entry.sections.security, '🔒'));
   }
@@ -155,7 +154,9 @@ export function displayCumulativeChanges(fromVersion: string, toVersion: string)
   console.log();
   console.log(chalk.bold.magenta('╔═══════════════════════════════════════════════════════╗'));
   console.log(chalk.bold.magenta('║         📋 CUMULATIVE CHANGELOG                        ║'));
-  console.log(chalk.bold.magenta(`║         ${fromVersion} → ${toVersion}                              ║`));
+  console.log(
+    chalk.bold.magenta(`║         ${fromVersion} → ${toVersion}                              ║`)
+  );
   console.log(chalk.bold.magenta('╚═══════════════════════════════════════════════════════╝'));
 
   // Display in reverse chronological order (newest first)
@@ -183,7 +184,7 @@ export function getUpgradeSummary(fromVersion: string, toVersion: string): strin
       ...(entry.sections.added?.slice(0, 2) || []),
       ...(entry.sections.security?.slice(0, 1) || []),
     ];
-    
+
     highlights.push(...important);
   });
 

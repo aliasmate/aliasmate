@@ -35,8 +35,8 @@ describe('onboarding system', () => {
       expect(result).toBe(true);
       expect(consoleLogSpy).toHaveBeenCalled();
       // Check for welcome message
-      const logCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-      const hasWelcome = logCalls.some(log => log.includes('Welcome to AliasMate'));
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+      const hasWelcome = logCalls.some((log) => log.includes('Welcome to AliasMate'));
       expect(hasWelcome).toBe(true);
     });
 
@@ -55,8 +55,8 @@ describe('onboarding system', () => {
 
       expect(result).toBe(true);
       expect(consoleLogSpy).toHaveBeenCalled();
-      const logCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-      const hasUpgrade = logCalls.some(log => log.includes('upgraded'));
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+      const hasUpgrade = logCalls.some((log) => log.includes('upgraded'));
       expect(hasUpgrade).toBe(true);
     });
 
@@ -141,10 +141,10 @@ describe('onboarding system', () => {
 
       checkAndShowOnboarding();
 
-      const logCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-      const hasTour = logCalls.some(log => log.includes('Quick Tour'));
-      const hasProTips = logCalls.some(log => log.includes('Pro Tips'));
-      
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+      const hasTour = logCalls.some((log) => log.includes('Quick Tour'));
+      const hasProTips = logCalls.some((log) => log.includes('Pro Tips'));
+
       expect(hasTour).toBe(true);
       expect(hasProTips).toBe(true);
     });
@@ -162,10 +162,12 @@ describe('onboarding system', () => {
 
       checkAndShowOnboarding();
 
-      const logCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
       // Should show what's new or changelog link
-      const hasWhatsNew = logCalls.some(log => log.includes("What's new") || log.includes('changelog'));
-      
+      const hasWhatsNew = logCalls.some(
+        (log) => log.includes("What's new") || log.includes('changelog')
+      );
+
       expect(hasWhatsNew).toBe(true);
     });
   });

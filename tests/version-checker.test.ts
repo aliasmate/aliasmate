@@ -71,14 +71,15 @@ describe('version-checker', () => {
         end: jest.fn(),
       };
 
-      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(
-        ((_options: unknown, callback?: (res: unknown) => void) => {
-          if (callback) {
-            callback(mockResponse);
-          }
-          return mockRequest as unknown as ReturnType<typeof https.request>;
-        }) as typeof https.request
-      );
+      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(((
+        _options: unknown,
+        callback?: (res: unknown) => void
+      ) => {
+        if (callback) {
+          callback(mockResponse);
+        }
+        return mockRequest as unknown as ReturnType<typeof https.request>;
+      }) as typeof https.request);
 
       const version = await fetchLatestVersion();
       expect(version).toBe('1.5.0');
@@ -136,14 +137,15 @@ describe('version-checker', () => {
         end: jest.fn(),
       };
 
-      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(
-        ((_options: unknown, callback?: (res: unknown) => void) => {
-          if (callback) {
-            callback(mockResponse);
-          }
-          return mockRequest as unknown as ReturnType<typeof https.request>;
-        }) as typeof https.request
-      );
+      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(((
+        _options: unknown,
+        callback?: (res: unknown) => void
+      ) => {
+        if (callback) {
+          callback(mockResponse);
+        }
+        return mockRequest as unknown as ReturnType<typeof https.request>;
+      }) as typeof https.request);
 
       const version = await fetchLatestVersion();
       expect(version).toBe(null);
@@ -166,14 +168,15 @@ describe('version-checker', () => {
         end: jest.fn(),
       };
 
-      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(
-        ((_options: unknown, callback?: (res: unknown) => void) => {
-          if (callback) {
-            callback(mockResponse);
-          }
-          return mockRequest as unknown as ReturnType<typeof https.request>;
-        }) as typeof https.request
-      );
+      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(((
+        _options: unknown,
+        callback?: (res: unknown) => void
+      ) => {
+        if (callback) {
+          callback(mockResponse);
+        }
+        return mockRequest as unknown as ReturnType<typeof https.request>;
+      }) as typeof https.request);
 
       const version = await fetchLatestVersion();
       expect(version).toBe(null);
@@ -213,14 +216,15 @@ describe('version-checker', () => {
         end: jest.fn(),
       };
 
-      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(
-        ((_options: unknown, callback?: (res: unknown) => void) => {
-          if (callback) {
-            callback(mockResponse);
-          }
-          return mockRequest as unknown as ReturnType<typeof https.request>;
-        }) as typeof https.request
-      );
+      (https.request as jest.MockedFunction<typeof https.request>).mockImplementation(((
+        _options: unknown,
+        callback?: (res: unknown) => void
+      ) => {
+        if (callback) {
+          callback(mockResponse);
+        }
+        return mockRequest as unknown as ReturnType<typeof https.request>;
+      }) as typeof https.request);
 
       await checkForUpdates();
 

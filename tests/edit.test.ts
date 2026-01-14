@@ -38,7 +38,13 @@ describe('edit command', () => {
 
     await editCommand('test-alias');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo new', '/new', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-alias',
+      'echo new',
+      '/new',
+      'saved',
+      undefined
+    );
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -114,7 +120,8 @@ describe('edit command', () => {
     };
 
     jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
-    jest.spyOn(prompts, 'promptMultiple')
+    jest
+      .spyOn(prompts, 'promptMultiple')
       .mockResolvedValueOnce({
         command: 'npm start',
         directory: '/tmp',
@@ -148,7 +155,9 @@ describe('edit command', () => {
         API_URL: 'https://api.example.com',
       })
     );
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variable(s) will be saved'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('environment variable(s) will be saved')
+    );
   });
 
   it('should clear environment variables when none selected', async () => {
@@ -164,7 +173,8 @@ describe('edit command', () => {
     };
 
     jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
-    jest.spyOn(prompts, 'promptMultiple')
+    jest
+      .spyOn(prompts, 'promptMultiple')
       .mockResolvedValueOnce({
         command: 'npm start',
         directory: '/tmp',
@@ -187,8 +197,16 @@ describe('edit command', () => {
 
     process.env = originalEnv;
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'npm start', '/tmp', 'saved', undefined);
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variables cleared'));
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-alias',
+      'npm start',
+      '/tmp',
+      'saved',
+      undefined
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('environment variables cleared')
+    );
   });
 
   it('should preserve existing env vars when user declines update', async () => {

@@ -163,7 +163,7 @@ void checkForUpdates();
 if (!aliasExists('llm')) {
   const llmCmd = getDefaultLLMCommand();
   setAlias(llmCmd.name, llmCmd.command, llmCmd.directory, llmCmd.pathMode);
-  
+
   if (onboardingShown) {
     console.log(chalk.green('✓ Default "llm" command has been created'));
     console.log(chalk.gray(`  Run ${chalk.cyan('aliasmate run llm')} to generate llm.txt`));

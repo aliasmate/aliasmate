@@ -1,8 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import {
-  getLastCommand,
-  getHistoryConfigInstructions,
-} from '../src/utils/history';
+import { getLastCommand, getHistoryConfigInstructions } from '../src/utils/history';
 import * as fs from 'fs';
 
 // Mock fs module properly

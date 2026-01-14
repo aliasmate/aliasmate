@@ -26,7 +26,13 @@ describe('prev command', () => {
 
     await prevCommand('prev-alias', '/tmp');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo previous', '/tmp', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'prev-alias',
+      'echo previous',
+      '/tmp',
+      'saved',
+      undefined
+    );
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -47,7 +53,13 @@ describe('prev command', () => {
 
     await prevCommand('prev-alias');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('prev-alias', 'echo test', cwd, 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'prev-alias',
+      'echo test',
+      cwd,
+      'saved',
+      undefined
+    );
   });
 
   it('should handle errors during save', async () => {
@@ -110,7 +122,9 @@ describe('prev command', () => {
         MY_API_KEY: 'secret123',
       })
     );
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variable(s) will be saved'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('environment variable(s) will be saved')
+    );
   });
 
   it('should not capture env vars when user declines in prev command', async () => {
