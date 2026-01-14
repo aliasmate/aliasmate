@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-01-14
+
+### Added
+- **Automatic Version Update Checker**
+  - Checks npm registry for new versions once per day
+  - Beautiful notification displayed when updates are available
+  - Smart error handling: silently fails if offline or network errors occur
+  - 5-second timeout prevents blocking user workflow
+  - Stores check metadata in `~/.config/aliasmate/metadata.json`
+  - Never interrupts or delays command execution
+  - Clear upgrade instructions in notification
+
+- **Metadata Storage System**
+  - New generic metadata storage for application state
+  - Separate from command aliases for better organization
+  - Support for typed metadata with TypeScript generics
+  - Atomic file operations to prevent corruption
+  - Foundation for future feature enhancements
+
+### Changed
+- Version checks run automatically on every command but only notify once per day
+- Configuration directory now contains both `config.json` (aliases) and `metadata.json` (app state)
+
 ## [1.3.1] - 2026-01-12
 
 ### Fixed

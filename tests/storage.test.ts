@@ -7,6 +7,10 @@ import {
   setAlias,
   deleteAlias,
   aliasExists,
+  loadMetadata,
+  saveMetadata,
+  getMetadata,
+  setMetadata,
   type AliasConfig,
 } from '../src/storage';
 
@@ -144,6 +148,73 @@ describe('storage', () => {
 
     it('should return false for non-existing alias', () => {
       expect(aliasExists('nonexistent')).toBe(false);
+    });
+  });
+
+  describe('metadata storage', () => {
+    beforeEach(() => {
+      saveMetadata({});
+    });
+
+    it('should save and load metadata', () => {
+      const testMetadata = {
+        test: { value: 'test data' },
+        number: 42,
+      };
+
+      const result = saveMetadata(testMetadata);
+      expect(result).toBe(true);
+
+      const loaded = loadMetadata();
+      expect(loaded.test).toEqual({ value: 'test data' });
+      expect(loaded.number).toBe(42);
+    });
+
+    it('should handle empty metadata', () => {
+      saveMetadata({});
+      const loaded = loadMetadata();
+      expect(loaded).toEqual({});
+    });
+
+    it('should get specific metadata by key', () => {
+      setMetadata('testKey', { data: 'test value' });
+      const retrieved = getMetadata<{ data: string }>('testKey');
+      expect(retrieved).toEqual({ data: 'test value' });
+    });
+
+    it('should return undefined for non-existing metadata key', () => {
+      const retrieved = getMetadata('nonexistent');
+      expect(retrieved).toBeUndefined();
+    });
+
+    it('should update existing metadata key', () => {
+      setMetadata('key', 'value1');
+      expect(getMetadata('key')).toBe('value1');
+
+      setMetadata('key', 'value2');
+      expect(getMetadata('key')).toBe('value2');
+    });
+
+    it('should handle complex metadata types', () => {
+      interface ComplexType {
+        lastCheckDate: string;
+        count: number;
+        nested: {
+          value: string;
+        };
+      }
+
+      const complexData: ComplexType = {
+        lastCheckDate: '2024-01-01',
+        count: 5,
+        nested: {
+          value: 'nested data',
+        },
+      };
+
+      setMetadata('complex', complexData);
+      const retrieved = getMetadata<ComplexType>('complex');
+      expect(retrieved).toEqual(complexData);
     });
   });
 });

@@ -16,6 +16,7 @@ import { getConfigPath, getConfigDir, loadAliases, setAlias, aliasExists } from 
 import { APP_VERSION } from './utils/constants';
 import { checkAndShowOnboarding } from './utils/onboarding';
 import { getDefaultLLMCommand } from './utils/llm-generator';
+import { checkForUpdates } from './utils/version-checker';
 
 const program = new Command();
 
@@ -154,6 +155,9 @@ process.on('unhandledRejection', (reason: unknown) => {
 // Check for first install or upgrade and show onboarding BEFORE parsing
 // This runs on EVERY invocation, but only shows messages on first install or upgrade
 const onboardingShown = checkAndShowOnboarding();
+
+// Check for updates (runs once per day, silently fails if offline)
+void checkForUpdates();
 
 // Create default LLM command if it doesn't exist
 if (!aliasExists('llm')) {
