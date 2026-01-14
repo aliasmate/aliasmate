@@ -159,12 +159,15 @@ const onboardingShown = checkAndShowOnboarding();
 // Check for updates (runs once per day, silently fails if offline)
 void checkForUpdates();
 
-// Create default LLM command if it doesn't exist
-if (!aliasExists('llm')) {
+// Create or update default LLM command
+// On first install: creates the llm command
+// On version upgrade: regenerates to keep version and content current
+const llmExists = aliasExists('llm');
+if (!llmExists || onboardingShown) {
   const llmCmd = getDefaultLLMCommand();
   setAlias(llmCmd.name, llmCmd.command, llmCmd.directory, llmCmd.pathMode);
 
-  if (onboardingShown) {
+  if (onboardingShown && !llmExists) {
     console.log(chalk.green('✓ Default "llm" command has been created'));
     console.log(chalk.gray(`  Run ${chalk.cyan('aliasmate run llm')} to generate llm.txt`));
     console.log();
