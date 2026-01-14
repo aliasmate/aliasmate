@@ -30,7 +30,7 @@ program
   .command('prev <name>')
   .description('Save the previous command from shell history')
   .action((name: string) => {
-    prevCommand(name, process.cwd());
+    void prevCommand(name, process.cwd());
   });
 
 // run command - execute a saved command

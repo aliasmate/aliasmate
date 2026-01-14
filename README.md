@@ -24,6 +24,7 @@ Whether you're a solo developer or part of a team, AliasMate helps you streamlin
 - 🚀 **Save previous commands** from shell history with one simple command
 - 📂 **Remember working directories** where commands should be executed
 - 🎯 **Path mode selection** - Choose between saved directory or current directory execution
+- 🌍 **Environment variable capture** - Save and restore environment variables with commands (NEW!)
 - ⚡ **Quick execution** of saved commands with optional path override
 - 📝 **Interactive save** with prompts for command and path
 - 📋 **List all saved commands** with their details

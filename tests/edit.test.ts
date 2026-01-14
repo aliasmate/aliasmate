@@ -32,12 +32,13 @@ describe('edit command', () => {
       directory: '/new',
       pathMode: 'saved' as const,
     });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't update env
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
     await editCommand('test-alias');
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo new', '/new', 'saved');
+    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo new', '/new', 'saved', undefined);
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -64,6 +65,7 @@ describe('edit command', () => {
       directory: '/test',
       pathMode: 'saved' as const,
     });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't update env
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -88,6 +90,7 @@ describe('edit command', () => {
       directory: '/test',
       pathMode: 'saved' as const,
     });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't update env
     jest.spyOn(console, 'log').mockImplementation(() => {});
 
     await editCommand('test-alias');
@@ -96,5 +99,123 @@ describe('edit command', () => {
     // Check that prompt was called with current values as defaults
     const callArgs = promptSpy.mock.calls[0][0];
     expect(callArgs).toBeDefined();
+  });
+
+  it('should update environment variables when user confirms', async () => {
+    const mockAlias = {
+      command: 'npm start',
+      directory: '/tmp',
+      pathMode: 'saved' as const,
+      env: {
+        NODE_ENV: 'production',
+      },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+
+    jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
+    jest.spyOn(prompts, 'promptMultiple')
+      .mockResolvedValueOnce({
+        command: 'npm start',
+        directory: '/tmp',
+        pathMode: 'saved' as const,
+      })
+      .mockResolvedValueOnce({
+        envVars: ['NODE_ENV', 'API_URL'],
+      });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(true); // Update env
+    jest.spyOn(storage, 'setAlias').mockReturnValue(true);
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    const originalEnv = process.env;
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: 'production',
+      API_URL: 'https://api.example.com',
+    };
+
+    await editCommand('test-alias');
+
+    process.env = originalEnv;
+
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-alias',
+      'npm start',
+      '/tmp',
+      'saved',
+      expect.objectContaining({
+        NODE_ENV: 'production',
+        API_URL: 'https://api.example.com',
+      })
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variable(s) will be saved'));
+  });
+
+  it('should clear environment variables when none selected', async () => {
+    const mockAlias = {
+      command: 'npm start',
+      directory: '/tmp',
+      pathMode: 'saved' as const,
+      env: {
+        NODE_ENV: 'production',
+      },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+
+    jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
+    jest.spyOn(prompts, 'promptMultiple')
+      .mockResolvedValueOnce({
+        command: 'npm start',
+        directory: '/tmp',
+        pathMode: 'saved' as const,
+      })
+      .mockResolvedValueOnce({
+        envVars: [], // Clear all env vars
+      });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(true); // Update env
+    jest.spyOn(storage, 'setAlias').mockReturnValue(true);
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    const originalEnv = process.env;
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: 'production',
+    };
+
+    await editCommand('test-alias');
+
+    process.env = originalEnv;
+
+    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'npm start', '/tmp', 'saved', undefined);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variables cleared'));
+  });
+
+  it('should preserve existing env vars when user declines update', async () => {
+    const mockAlias = {
+      command: 'npm start',
+      directory: '/tmp',
+      pathMode: 'saved' as const,
+      env: {
+        NODE_ENV: 'production',
+      },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+
+    jest.spyOn(storage, 'getAlias').mockReturnValue(mockAlias);
+    jest.spyOn(prompts, 'promptMultiple').mockResolvedValue({
+      command: 'npm start',
+      directory: '/tmp',
+      pathMode: 'saved' as const,
+    });
+    jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't update env
+    jest.spyOn(storage, 'setAlias').mockReturnValue(true);
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await editCommand('test-alias');
+
+    // Should not be called since no changes (command/dir/pathMode same, env not updated)
+    expect(storage.setAlias).not.toHaveBeenCalled();
   });
 });

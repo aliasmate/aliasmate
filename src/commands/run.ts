@@ -4,6 +4,7 @@ import { executeCommand } from '../utils/executor';
 import { resolvePath } from '../utils/paths';
 import { handleError, ExitCode } from '../utils/errors';
 import { ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
+import { mergeEnvVars, getEnvOverrides, maskSensitiveEnvVars } from '../utils/env';
 
 /**
  * Run a saved command, optionally overriding its working directory
@@ -57,10 +58,33 @@ export async function runCommand(name: string, overridePath?: string): Promise<v
     } else {
       console.log(chalk.gray(`Path Mode: ${pathMode}`));
     }
+
+    // Handle environment variables
+    let envToUse: NodeJS.ProcessEnv = process.env;
+    if (alias.env && Object.keys(alias.env).length > 0) {
+      envToUse = mergeEnvVars(alias.env, process.env);
+      console.log(chalk.gray(`Environment Variables: ${Object.keys(alias.env).length} loaded`));
+      
+      // Show any overrides
+      const overrides = getEnvOverrides(alias.env, process.env);
+      if (overrides.length > 0) {
+        console.log(chalk.yellow(`\n⚠️  ${overrides.length} saved env variable(s) overridden by current environment:`));
+        overrides.forEach(({ name }) => {
+          console.log(chalk.yellow(`   - ${name}`));
+        });
+      }
+      
+      // Show masked env vars for visibility
+      const masked = maskSensitiveEnvVars(alias.env);
+      console.log(chalk.gray('\nSaved environment variables:'));
+      Object.entries(masked).forEach(([key, value]) => {
+        console.log(chalk.gray(`   ${key}=${value}`));
+      });
+    }
     console.log();
 
-    // Execute the command
-    const result = await executeCommand(alias.command, runDir);
+    // Execute the command with merged environment
+    const result = await executeCommand(alias.command, runDir, envToUse);
 
     if (!result.success) {
       console.error(chalk.red('\n✗ Command failed'));

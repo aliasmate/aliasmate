@@ -66,6 +66,12 @@ export function listCommand(): void {
       console.log(chalk.gray(`    Command: ${displayCommand}`));
       console.log(chalk.gray(`    Directory: ${alias.directory}`));
       console.log(chalk.gray(`    Path Mode: ${pathMode === 'saved' ? '📁 Saved' : '📍 Current'}`));
+      
+      // Show env var count if any are saved
+      if (alias.env && Object.keys(alias.env).length > 0) {
+        console.log(chalk.gray(`    Environment Variables: ${Object.keys(alias.env).length} saved`));
+      }
+      
       if (alias.createdAt) {
         console.log(chalk.gray(`    Created: ${new Date(alias.createdAt).toLocaleString()}`));
       }

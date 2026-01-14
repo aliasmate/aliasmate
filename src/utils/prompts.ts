@@ -26,7 +26,14 @@ export interface ListPrompt {
   choices: Array<{ name: string; value: string }>;
 }
 
-type PromptType = TextInputPrompt | ConfirmPrompt | ListPrompt;
+export interface CheckboxPrompt {
+  type: 'checkbox';
+  name: string;
+  message: string;
+  choices: Array<{ name: string; value: string; checked?: boolean }>;
+}
+
+type PromptType = TextInputPrompt | ConfirmPrompt | ListPrompt | CheckboxPrompt;
 
 /**
  * Type-safe wrapper for inquirer text input prompt
