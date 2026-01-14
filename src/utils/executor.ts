@@ -22,6 +22,7 @@ export interface ExecutionResult {
  *
  * @param command - The shell command to execute
  * @param cwd - The working directory to execute the command in
+ * @param env - Optional environment variables to use (defaults to process.env)
  * @returns A promise that resolves with the execution result
  * @throws {Error} If the directory doesn't exist
  *
@@ -33,7 +34,11 @@ export interface ExecutionResult {
  * }
  * ```
  */
-export async function executeCommand(command: string, cwd: string): Promise<ExecutionResult> {
+export async function executeCommand(
+  command: string, 
+  cwd: string, 
+  env: NodeJS.ProcessEnv = process.env
+): Promise<ExecutionResult> {
   // Validate inputs
   if (!command || !command.trim()) {
     throw new Error('Command cannot be empty');
@@ -60,6 +65,7 @@ export async function executeCommand(command: string, cwd: string): Promise<Exec
       shell: true,
       cwd: resolvedCwd,
       stdio: 'inherit',
+      env,
     });
 
     return {

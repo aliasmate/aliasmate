@@ -19,6 +19,8 @@ export interface CommandAlias {
   directory: string;
   /** Path mode: 'saved' (use stored directory) or 'current' (use current directory) */
   pathMode?: PathMode; // Optional for backward compatibility
+  /** Environment variables to set when running the command */
+  env?: Record<string, string>; // Optional for backward compatibility
   /** ISO 8601 timestamp when the command was created */
   createdAt: string;
   /** ISO 8601 timestamp when the command was last modified */
@@ -122,6 +124,7 @@ export function getAlias(name: string): CommandAlias | undefined {
  * @param command - The shell command to save
  * @param directory - The working directory for the command
  * @param pathMode - Optional path mode ('saved' or 'current'), defaults to 'saved'
+ * @param env - Optional environment variables to save with the command
  * @returns true if successful, false otherwise
  * @throws {Error} If the directory doesn't exist or isn't accessible
  */
@@ -129,7 +132,8 @@ export function setAlias(
   name: string, 
   command: string, 
   directory: string, 
-  pathMode: PathMode = 'saved'
+  pathMode: PathMode = 'saved',
+  env?: Record<string, string>
 ): boolean {
   // Validate inputs
   if (!name || !name.trim()) {
@@ -152,6 +156,7 @@ export function setAlias(
     command: command.trim(),
     directory: path.resolve(directory),
     pathMode,
+    ...(env && Object.keys(env).length > 0 ? { env } : {}),
     createdAt: aliases[name]?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

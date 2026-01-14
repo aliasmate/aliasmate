@@ -7,8 +7,14 @@ import {
   promptConfirm, 
   TextInputPrompt, 
   ConfirmPrompt, 
-  ListPrompt 
+  ListPrompt,
+  CheckboxPrompt,
 } from '../utils/prompts';
+import { 
+  getUserEnvVars, 
+  categorizeEnvVars, 
+  formatEnvVars 
+} from '../utils/env';
 
 /**
  * Interactively save a new command with prompts
@@ -112,13 +118,77 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
       }
     }
 
-    // Save the command with path mode
+    // Ask if user wants to capture environment variables
+    const captureEnvPrompt: ConfirmPrompt = {
+      type: 'confirm',
+      name: 'captureEnv',
+      message: 'Capture current environment variables with this command?',
+      default: false,
+    };
+
+    const shouldCaptureEnv = await promptConfirm(captureEnvPrompt);
+    let selectedEnv: Record<string, string> = {};
+
+    if (shouldCaptureEnv) {
+      const userEnv = getUserEnvVars();
+      const { sensitive, safe } = categorizeEnvVars(userEnv);
+      
+      if (Object.keys(userEnv).length === 0) {
+        console.log(chalk.yellow('No user-defined environment variables found.'));
+      } else {
+        // Show warning if there are sensitive vars
+        if (Object.keys(sensitive).length > 0) {
+          console.log(chalk.yellow('\n⚠️  Warning: Some environment variables appear to contain sensitive data:'));
+          Object.keys(sensitive).forEach(key => {
+            console.log(chalk.yellow(`   - ${key}`));
+          });
+          console.log(chalk.gray('(These may contain API keys, tokens, or passwords)\n'));
+        }
+
+        // Let user select which vars to save
+        const envChoices = [
+          ...Object.keys(safe).map(key => ({
+            name: formatEnvVars({ [key]: userEnv[key] })[0],
+            value: key,
+            checked: true, // Safe vars are checked by default
+          })),
+          ...Object.keys(sensitive).map(key => ({
+            name: `${formatEnvVars({ [key]: userEnv[key] })[0]} ${chalk.yellow('(sensitive)')}`,
+            value: key,
+            checked: false, // Sensitive vars are unchecked by default
+          })),
+        ];
+
+        if (envChoices.length > 0) {
+          const checkboxPrompt: CheckboxPrompt = {
+            type: 'checkbox',
+            name: 'envVars',
+            message: 'Select environment variables to save (use space to toggle):',
+            choices: envChoices,
+          };
+
+          const selectedVars = await promptMultiple<{ envVars: string[] }>([checkboxPrompt]);
+          
+          // Build the selected env object
+          for (const varName of selectedVars.envVars) {
+            selectedEnv[varName] = userEnv[varName];
+          }
+
+          if (Object.keys(selectedEnv).length > 0) {
+            console.log(chalk.green(`\n✓ ${Object.keys(selectedEnv).length} environment variable(s) will be saved`));
+          }
+        }
+      }
+    }
+
+    // Save the command with path mode and env vars
     try {
       const success = setAlias(
         answers.name.trim(), 
         answers.command, 
         answers.directory,
-        answers.pathMode
+        answers.pathMode,
+        Object.keys(selectedEnv).length > 0 ? selectedEnv : undefined
       );
 
       if (success) {
@@ -126,6 +196,9 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
         console.log(chalk.gray(`  Command: ${answers.command}`));
         console.log(chalk.gray(`  Directory: ${answers.directory}`));
         console.log(chalk.gray(`  Path Mode: ${answers.pathMode}`));
+        if (Object.keys(selectedEnv).length > 0) {
+          console.log(chalk.gray(`  Environment Variables: ${Object.keys(selectedEnv).length} saved`));
+        }
       } else {
         exitWithError(ERROR_MESSAGES.couldNotSave);
       }

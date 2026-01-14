@@ -116,9 +116,10 @@ function showUpgradeMessage(oldVersion: string, newVersion: string): void {
   console.log(chalk.bold.green(`🎊 AliasMate upgraded from v${oldVersion} to v${newVersion}!`));
   console.log();
   console.log(chalk.white("What's new:"));
-  console.log(chalk.gray('  • Path mode option: Choose between saved directory or current directory'));
-  console.log(chalk.gray('  • Default "llm" command for LLM integration'));
-  console.log(chalk.gray('  • Enhanced onboarding experience'));
+  console.log(chalk.gray('  • Environment variable capture: Save and restore command environment'));
+  console.log(chalk.gray('  • Security features: Automatic masking of sensitive variables (API keys, secrets)'));
+  console.log(chalk.gray('  • Smart filtering: Excludes system variables, keeps only user-defined vars'));
+  console.log(chalk.gray('  • Environment management: Edit, clear, and merge environment variables'));
   console.log();
   console.log(chalk.yellow('Run') + chalk.cyan(' aliasmate list ') + chalk.yellow('to see your commands'));
   console.log();
