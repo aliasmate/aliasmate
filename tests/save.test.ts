@@ -22,7 +22,13 @@ describe('save command', () => {
 
     await saveCommand();
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-alias', 'echo test', '/tmp', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-alias',
+      'echo test',
+      '/tmp',
+      'saved',
+      undefined
+    );
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -43,7 +49,13 @@ describe('save command', () => {
 
     await saveCommand();
 
-    expect(storage.setAlias).toHaveBeenCalledWith('existing', 'echo test', '/tmp', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'existing',
+      'echo test',
+      '/tmp',
+      'saved',
+      undefined
+    );
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -82,7 +94,13 @@ describe('save command', () => {
 
     await saveCommand();
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-current', 'echo test', '/tmp', 'current', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-current',
+      'echo test',
+      '/tmp',
+      'current',
+      undefined
+    );
     expect(consoleSpy).toHaveBeenCalled();
   });
 
@@ -107,7 +125,8 @@ describe('save command', () => {
   });
 
   it('should capture environment variables when user confirms', async () => {
-    jest.spyOn(prompts, 'promptMultiple')
+    jest
+      .spyOn(prompts, 'promptMultiple')
       .mockResolvedValueOnce({
         name: 'test-env',
         command: 'npm start',
@@ -145,7 +164,9 @@ describe('save command', () => {
         API_URL: 'https://api.example.com',
       })
     );
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('environment variable(s) will be saved'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('environment variable(s) will be saved')
+    );
   });
 
   it('should not capture env vars when user declines', async () => {
@@ -162,11 +183,18 @@ describe('save command', () => {
 
     await saveCommand();
 
-    expect(storage.setAlias).toHaveBeenCalledWith('test-no-env', 'npm test', '/tmp', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-no-env',
+      'npm test',
+      '/tmp',
+      'saved',
+      undefined
+    );
   });
 
   it('should handle empty environment variable selection', async () => {
-    jest.spyOn(prompts, 'promptMultiple')
+    jest
+      .spyOn(prompts, 'promptMultiple')
       .mockResolvedValueOnce({
         name: 'test-empty-env',
         command: 'echo test',
@@ -192,6 +220,12 @@ describe('save command', () => {
     process.env = originalEnv;
 
     // Should save without env vars when none selected
-    expect(storage.setAlias).toHaveBeenCalledWith('test-empty-env', 'echo test', '/tmp', 'saved', undefined);
+    expect(storage.setAlias).toHaveBeenCalledWith(
+      'test-empty-env',
+      'echo test',
+      '/tmp',
+      'saved',
+      undefined
+    );
   });
 });

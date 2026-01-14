@@ -35,9 +35,7 @@ describe('executor', () => {
       fs.writeFileSync(tempFile, 'test');
 
       try {
-        await expect(executeCommand('echo test', tempFile)).rejects.toThrow(
-          'not a directory'
-        );
+        await expect(executeCommand('echo test', tempFile)).rejects.toThrow('not a directory');
       } finally {
         fs.unlinkSync(tempFile);
       }

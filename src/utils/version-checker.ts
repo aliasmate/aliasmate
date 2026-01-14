@@ -62,7 +62,7 @@ export async function fetchLatestVersion(): Promise<string | null> {
       res.on('end', () => {
         try {
           if (res.statusCode === 200) {
-            const json = JSON.parse(data);
+            const json = JSON.parse(data) as { version?: string };
             resolve(json.version || null);
           } else {
             resolve(null);
@@ -117,7 +117,11 @@ function shouldCheckForUpdate(): boolean {
 function displayUpdateNotification(latestVersion: string): void {
   console.log();
   console.log(chalk.yellow('╭─────────────────────────────────────────────────────╮'));
-  console.log(chalk.yellow('│') + chalk.bold.yellow('  Update Available!                                 ') + chalk.yellow('│'));
+  console.log(
+    chalk.yellow('│') +
+      chalk.bold.yellow('  Update Available!                                 ') +
+      chalk.yellow('│')
+  );
   console.log(chalk.yellow('├─────────────────────────────────────────────────────┤'));
   console.log(
     chalk.yellow('│') +

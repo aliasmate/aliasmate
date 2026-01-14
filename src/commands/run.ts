@@ -34,14 +34,14 @@ export async function runCommand(name: string, overridePath?: string): Promise<v
 
     // Determine the directory to run in based on path mode and override
     let runDir: string;
-    
+
     if (overridePath) {
       // User explicitly provided a path override
       runDir = resolvePath(overridePath, process.cwd());
     } else {
       // Use path mode to determine directory
       const pathMode = alias.pathMode || 'saved'; // Default to 'saved' for backward compatibility
-      
+
       if (pathMode === 'current') {
         runDir = process.cwd();
       } else {
@@ -64,16 +64,20 @@ export async function runCommand(name: string, overridePath?: string): Promise<v
     if (alias.env && Object.keys(alias.env).length > 0) {
       envToUse = mergeEnvVars(alias.env, process.env);
       console.log(chalk.gray(`Environment Variables: ${Object.keys(alias.env).length} loaded`));
-      
+
       // Show any overrides
       const overrides = getEnvOverrides(alias.env, process.env);
       if (overrides.length > 0) {
-        console.log(chalk.yellow(`\n⚠️  ${overrides.length} saved env variable(s) overridden by current environment:`));
+        console.log(
+          chalk.yellow(
+            `\n⚠️  ${overrides.length} saved env variable(s) overridden by current environment:`
+          )
+        );
         overrides.forEach(({ name }) => {
           console.log(chalk.yellow(`   - ${name}`));
         });
       }
-      
+
       // Show masked env vars for visibility
       const masked = maskSensitiveEnvVars(alias.env);
       console.log(chalk.gray('\nSaved environment variables:'));

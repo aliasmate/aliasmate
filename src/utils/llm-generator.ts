@@ -266,7 +266,7 @@ Each command contains:
    - Use "current" for general utilities
 
 3. **Regular Backups**: Export commands periodically
-   - \`aliasmate export ~/backups/aliases-\$(date +%Y%m%d).json\`
+   - \`aliasmate export ~/backups/aliases-$(date +%Y%m%d).json\`
 
 4. **Team Sharing**: Maintain a shared command repository
    - Version control your command exports
@@ -399,9 +399,9 @@ For more information, visit: https://github.com/aliasmate/aliasmate
 export function createLLMFile(targetDir: string): string {
   const content = generateLLMContent();
   const filePath = path.join(targetDir, 'llm.txt');
-  
+
   fs.writeFileSync(filePath, content, 'utf8');
-  
+
   return filePath;
 }
 
@@ -409,7 +409,12 @@ export function createLLMFile(targetDir: string): string {
  * Get the default LLM command configuration
  * This command will be auto-created during onboarding
  */
-export function getDefaultLLMCommand(): { name: string; command: string; directory: string; pathMode: 'current' } {
+export function getDefaultLLMCommand(): {
+  name: string;
+  command: string;
+  directory: string;
+  pathMode: 'current';
+} {
   return {
     name: 'llm',
     command: `cat > llm.txt << 'ALIASMATE_LLM_EOF'\n${generateLLMContent()}\nALIASMATE_LLM_EOF\necho "✓ Created llm.txt in $(pwd)"`,

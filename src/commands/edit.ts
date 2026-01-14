@@ -2,19 +2,15 @@ import chalk from 'chalk';
 import { getAlias, setAlias, PathMode } from '../storage';
 import { handleError, isInquirerTTYError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
-import { 
-  promptMultiple, 
-  promptConfirm, 
-  TextInputPrompt, 
-  ListPrompt, 
+import {
+  promptMultiple,
+  promptConfirm,
+  TextInputPrompt,
+  ListPrompt,
   ConfirmPrompt,
-  CheckboxPrompt 
+  CheckboxPrompt,
 } from '../utils/prompts';
-import { 
-  getUserEnvVars, 
-  categorizeEnvVars, 
-  formatEnvVars 
-} from '../utils/env';
+import { getUserEnvVars, categorizeEnvVars, formatEnvVars } from '../utils/env';
 
 /**
  * Edit an existing command interactively
@@ -87,8 +83,8 @@ export async function editCommand(name: string): Promise<void> {
       },
     ];
 
-    const answers = await promptMultiple<{ 
-      command: string; 
+    const answers = await promptMultiple<{
+      command: string;
       directory: string;
       pathMode: PathMode;
     }>(prompts);
@@ -108,19 +104,23 @@ export async function editCommand(name: string): Promise<void> {
       // Merge current env with saved env for the selection UI
       const currentEnv = getUserEnvVars();
       const savedEnv = alias.env || {};
-      
+
       // Combine all available env vars
       const allEnv = { ...currentEnv, ...savedEnv };
       const { sensitive, safe } = categorizeEnvVars(allEnv);
-      
+
       if (Object.keys(allEnv).length === 0) {
         console.log(chalk.yellow('No user-defined environment variables found.'));
         selectedEnv = undefined;
       } else {
         // Show warning if there are sensitive vars
         if (Object.keys(sensitive).length > 0) {
-          console.log(chalk.yellow('\n⚠️  Warning: Some environment variables appear to contain sensitive data:'));
-          Object.keys(sensitive).forEach(key => {
+          console.log(
+            chalk.yellow(
+              '\n⚠️  Warning: Some environment variables appear to contain sensitive data:'
+            )
+          );
+          Object.keys(sensitive).forEach((key) => {
             console.log(chalk.yellow(`   - ${key}`));
           });
           console.log(chalk.gray('(These may contain API keys, tokens, or passwords)\n'));
@@ -128,12 +128,12 @@ export async function editCommand(name: string): Promise<void> {
 
         // Let user select which vars to save
         const envChoices = [
-          ...Object.keys(safe).map(key => ({
+          ...Object.keys(safe).map((key) => ({
             name: formatEnvVars({ [key]: allEnv[key] })[0],
             value: key,
             checked: key in savedEnv, // Check if already saved
           })),
-          ...Object.keys(sensitive).map(key => ({
+          ...Object.keys(sensitive).map((key) => ({
             name: `${formatEnvVars({ [key]: allEnv[key] })[0]} ${chalk.yellow('(sensitive)')}`,
             value: key,
             checked: key in savedEnv, // Check if already saved
@@ -149,7 +149,7 @@ export async function editCommand(name: string): Promise<void> {
           };
 
           const selectedVars = await promptMultiple<{ envVars: string[] }>([checkboxPrompt]);
-          
+
           // Build the selected env object
           const newEnv: Record<string, string> = {};
           for (const varName of selectedVars.envVars) {
@@ -159,7 +159,11 @@ export async function editCommand(name: string): Promise<void> {
           selectedEnv = Object.keys(newEnv).length > 0 ? newEnv : undefined;
 
           if (selectedEnv) {
-            console.log(chalk.green(`\n✓ ${Object.keys(selectedEnv).length} environment variable(s) will be saved`));
+            console.log(
+              chalk.green(
+                `\n✓ ${Object.keys(selectedEnv).length} environment variable(s) will be saved`
+              )
+            );
           } else {
             console.log(chalk.yellow('\n✓ All environment variables cleared'));
           }
@@ -170,9 +174,9 @@ export async function editCommand(name: string): Promise<void> {
     // Check if anything changed
     const currentPathMode = alias.pathMode || 'saved'; // Default to 'saved' for backward compatibility
     const envChanged = JSON.stringify(selectedEnv || {}) !== JSON.stringify(alias.env || {});
-    
+
     if (
-      answers.command === alias.command && 
+      answers.command === alias.command &&
       answers.directory === alias.directory &&
       answers.pathMode === currentPathMode &&
       !envChanged
@@ -184,9 +188,9 @@ export async function editCommand(name: string): Promise<void> {
     // Update the alias with path mode and env vars
     try {
       const success = setAlias(
-        name, 
-        answers.command, 
-        answers.directory, 
+        name,
+        answers.command,
+        answers.directory,
         answers.pathMode,
         selectedEnv
       );
@@ -197,7 +201,9 @@ export async function editCommand(name: string): Promise<void> {
         console.log(chalk.gray(`  Directory: ${answers.directory}`));
         console.log(chalk.gray(`  Path Mode: ${answers.pathMode}`));
         if (selectedEnv && Object.keys(selectedEnv).length > 0) {
-          console.log(chalk.gray(`  Environment Variables: ${Object.keys(selectedEnv).length} saved`));
+          console.log(
+            chalk.gray(`  Environment Variables: ${Object.keys(selectedEnv).length} saved`)
+          );
         } else {
           console.log(chalk.gray(`  Environment Variables: none`));
         }

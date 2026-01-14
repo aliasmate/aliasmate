@@ -3,17 +3,8 @@ import { getLastCommand, getHistoryConfigInstructions } from '../utils/history';
 import { setAlias } from '../storage';
 import { handleError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../utils/constants';
-import { 
-  promptConfirm, 
-  promptMultiple, 
-  ConfirmPrompt, 
-  CheckboxPrompt 
-} from '../utils/prompts';
-import { 
-  getUserEnvVars, 
-  categorizeEnvVars, 
-  formatEnvVars 
-} from '../utils/env';
+import { promptConfirm, promptMultiple, ConfirmPrompt, CheckboxPrompt } from '../utils/prompts';
+import { getUserEnvVars, categorizeEnvVars, formatEnvVars } from '../utils/env';
 
 /**
  * Save the previous command from shell history
@@ -42,11 +33,17 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
       console.log(chalk.gray('Configure your shell for real-time history writing:'));
       console.log(chalk.cyan(`   ${getHistoryConfigInstructions()}`));
       console.log(chalk.yellow('\nAlternative:'));
-      console.log(chalk.gray('Use') + chalk.cyan(' aliasmate save ') + chalk.gray('to manually enter the command'));
+      console.log(
+        chalk.gray('Use') +
+          chalk.cyan(' aliasmate save ') +
+          chalk.gray('to manually enter the command')
+      );
       console.log(chalk.yellow('\nWhat you can do right now:'));
       console.log(chalk.gray('1. Configure your shell as shown above'));
       console.log(chalk.gray('2. Close and reopen your terminal'));
-      console.log(chalk.gray('3. Try running your command again, then use') + chalk.cyan(' aliasmate prev'));
+      console.log(
+        chalk.gray('3. Try running your command again, then use') + chalk.cyan(' aliasmate prev')
+      );
       process.exit(ExitCode.GeneralError);
     }
 
@@ -73,19 +70,23 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
     };
 
     const shouldCaptureEnv = await promptConfirm(captureEnvPrompt);
-    let selectedEnv: Record<string, string> = {};
+    const selectedEnv: Record<string, string> = {};
 
     if (shouldCaptureEnv) {
       const userEnv = getUserEnvVars();
       const { sensitive, safe } = categorizeEnvVars(userEnv);
-      
+
       if (Object.keys(userEnv).length === 0) {
         console.log(chalk.yellow('No user-defined environment variables found.'));
       } else {
         // Show warning if there are sensitive vars
         if (Object.keys(sensitive).length > 0) {
-          console.log(chalk.yellow('\n⚠️  Warning: Some environment variables appear to contain sensitive data:'));
-          Object.keys(sensitive).forEach(key => {
+          console.log(
+            chalk.yellow(
+              '\n⚠️  Warning: Some environment variables appear to contain sensitive data:'
+            )
+          );
+          Object.keys(sensitive).forEach((key) => {
             console.log(chalk.yellow(`   - ${key}`));
           });
           console.log(chalk.gray('(These may contain API keys, tokens, or passwords)\n'));
@@ -93,12 +94,12 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
 
         // Let user select which vars to save
         const envChoices = [
-          ...Object.keys(safe).map(key => ({
+          ...Object.keys(safe).map((key) => ({
             name: formatEnvVars({ [key]: userEnv[key] })[0],
             value: key,
             checked: true, // Safe vars are checked by default
           })),
-          ...Object.keys(sensitive).map(key => ({
+          ...Object.keys(sensitive).map((key) => ({
             name: `${formatEnvVars({ [key]: userEnv[key] })[0]} ${chalk.yellow('(sensitive)')}`,
             value: key,
             checked: false, // Sensitive vars are unchecked by default
@@ -114,14 +115,18 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
           };
 
           const selectedVars = await promptMultiple<{ envVars: string[] }>([checkboxPrompt]);
-          
+
           // Build the selected env object
           for (const varName of selectedVars.envVars) {
             selectedEnv[varName] = userEnv[varName];
           }
 
           if (Object.keys(selectedEnv).length > 0) {
-            console.log(chalk.green(`\n✓ ${Object.keys(selectedEnv).length} environment variable(s) will be saved`));
+            console.log(
+              chalk.green(
+                `\n✓ ${Object.keys(selectedEnv).length} environment variable(s) will be saved`
+              )
+            );
           }
         }
       }
@@ -130,9 +135,9 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
     // Save the command with the current directory and env vars (default to 'saved' path mode for prev command)
     try {
       const success = setAlias(
-        name, 
-        lastCommand, 
-        cwd, 
+        name,
+        lastCommand,
+        cwd,
         'saved',
         Object.keys(selectedEnv).length > 0 ? selectedEnv : undefined
       );
@@ -143,7 +148,9 @@ export async function prevCommand(name: string, cwd: string = process.cwd()): Pr
         console.log(chalk.gray(`  Directory: ${cwd}`));
         console.log(chalk.gray(`  Path Mode: saved (use 'aliasmate edit ${name}' to change)`));
         if (Object.keys(selectedEnv).length > 0) {
-          console.log(chalk.gray(`  Environment Variables: ${Object.keys(selectedEnv).length} saved`));
+          console.log(
+            chalk.gray(`  Environment Variables: ${Object.keys(selectedEnv).length} saved`)
+          );
         }
       } else {
         exitWithError(ERROR_MESSAGES.couldNotSave);

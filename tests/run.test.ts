@@ -114,18 +114,16 @@ describe('run command', () => {
     await runCommand('test-alias');
 
     // Verify the call was made with the command and directory
-    expect(executor.executeCommand).toHaveBeenCalledWith(
-      'npm start',
-      '/tmp',
-      expect.any(Object)
-    );
-    
+    expect(executor.executeCommand).toHaveBeenCalledWith('npm start', '/tmp', expect.any(Object));
+
     // Check that the env contains our saved variables
     const callArgs = (executor.executeCommand as jest.Mock).mock.calls[0];
     const envArg = callArgs[2];
     expect(envArg).toHaveProperty('APP_ENV', 'production');
     expect(envArg).toHaveProperty('API_URL', 'https://api.example.com');
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Environment Variables: 2 loaded'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Environment Variables: 2 loaded')
+    );
   });
 
   it('should show env override warning when current env differs from saved', async () => {
@@ -160,7 +158,9 @@ describe('run command', () => {
 
     process.env = originalEnv;
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('overridden by current environment'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('overridden by current environment')
+    );
   });
 
   it('should run without env vars when none are saved', async () => {

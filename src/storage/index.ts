@@ -144,9 +144,9 @@ export function getAlias(name: string): CommandAlias | undefined {
  * @throws {Error} If the directory doesn't exist or isn't accessible
  */
 export function setAlias(
-  name: string, 
-  command: string, 
-  directory: string, 
+  name: string,
+  command: string,
+  directory: string,
   pathMode: PathMode = 'saved',
   env?: Record<string, string>
 ): boolean {

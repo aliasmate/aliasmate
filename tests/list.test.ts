@@ -40,7 +40,7 @@ describe('list command', () => {
 
   it('should display alias details correctly', () => {
     const mockAliases = {
-      'test': {
+      test: {
         command: 'echo hello',
         directory: '/tmp',
         createdAt: '2024-01-01T00:00:00.000Z',

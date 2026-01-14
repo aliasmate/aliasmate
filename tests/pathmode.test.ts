@@ -42,7 +42,11 @@ describe('path mode feature', () => {
 
       await runCommand('test-alias');
 
-      expect(executor.executeCommand).toHaveBeenCalledWith('echo test', '/saved/path', expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'echo test',
+        '/saved/path',
+        expect.any(Object)
+      );
 
       process.cwd = originalCwd;
     });
@@ -68,7 +72,11 @@ describe('path mode feature', () => {
       await runCommand('test-alias');
 
       // Should use the saved directory, not current
-      expect(executor.executeCommand).toHaveBeenCalledWith('npm test', '/project/root', expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'npm test',
+        '/project/root',
+        expect.any(Object)
+      );
     });
   });
 
@@ -98,7 +106,11 @@ describe('path mode feature', () => {
       await runCommand('test-alias');
 
       // Should use current directory, not saved one
-      expect(executor.executeCommand).toHaveBeenCalledWith('eslint .', currentDir, expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'eslint .',
+        currentDir,
+        expect.any(Object)
+      );
 
       process.cwd = originalCwd;
     });
@@ -127,7 +139,11 @@ describe('path mode feature', () => {
 
       await runCommand('test-alias');
 
-      expect(executor.executeCommand).toHaveBeenCalledWith('git status', currentRepo, expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'git status',
+        currentRepo,
+        expect.any(Object)
+      );
 
       process.cwd = originalCwd;
     });
@@ -155,7 +171,11 @@ describe('path mode feature', () => {
       await runCommand('test-alias');
 
       // Should behave like 'saved' mode (backward compatible)
-      expect(executor.executeCommand).toHaveBeenCalledWith('echo test', '/saved/path', expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'echo test',
+        '/saved/path',
+        expect.any(Object)
+      );
     });
   });
 
@@ -181,7 +201,11 @@ describe('path mode feature', () => {
       await runCommand('test-alias', '/override/path');
 
       // Should use override path, ignoring path mode
-      expect(executor.executeCommand).toHaveBeenCalledWith('npm build', '/override/path', expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'npm build',
+        '/override/path',
+        expect.any(Object)
+      );
     });
 
     it('should override current mode with explicit path', async () => {
@@ -204,7 +228,11 @@ describe('path mode feature', () => {
 
       await runCommand('test-alias', '/specific/path');
 
-      expect(executor.executeCommand).toHaveBeenCalledWith('eslint .', '/specific/path', expect.any(Object));
+      expect(executor.executeCommand).toHaveBeenCalledWith(
+        'eslint .',
+        '/specific/path',
+        expect.any(Object)
+      );
     });
   });
 });
