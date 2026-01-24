@@ -57,7 +57,24 @@ npm i -g aliasmate
 
 AliasMate supports auto-completion for bash, zsh, and fish shells. This provides tab completion for commands, saved command names, and flags.
 
-### Bash
+### 🚀 Quick Install (Recommended)
+
+The easiest way to install completion is to use the auto-installer:
+
+```bash
+aliasmate completion install
+```
+
+This will:
+- Auto-detect your shell (bash/zsh/fish)
+- Add the completion script to your shell config
+- Show you how to reload your shell
+
+### Manual Installation
+
+If you prefer manual installation or the auto-installer doesn't work for your setup:
+
+#### Bash
 
 Add to your `~/.bashrc`:
 ```bash
@@ -69,7 +86,7 @@ Then reload:
 source ~/.bashrc
 ```
 
-### Zsh
+#### Zsh
 
 Add to your `~/.zshrc`:
 ```bash
@@ -81,7 +98,7 @@ Then reload:
 source ~/.zshrc
 ```
 
-### Fish
+#### Fish
 
 Generate the completion file:
 ```bash
@@ -693,6 +710,7 @@ Commands are stored in:
 | `aliasmate recent --clear` | - | Clear execution history |
 | `aliasmate validate <name>` | - | Validate a single command |
 | `aliasmate validate --all` | - | Validate all saved commands |
+| `aliasmate completion install` | - | Auto-install shell completion for your shell |
 | `aliasmate completion <shell>` | - | Generate shell completion script (bash, zsh, fish) |
 | `aliasmate changelog` | `changes` | View version changelog and release notes |
 | `aliasmate config` | - | Show config file location and command count |

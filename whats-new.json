@@ -198,5 +198,20 @@
         "Improved user experience with motivational messaging for upgrades"
       ]
     }
+  },
+  "1.6.2": {
+    "version": "1.6.2",
+    "date": "2026-01-24",
+    "sections": {
+      "added": [
+        "Automated completion installation with 'aliasmate completion install'",
+        "Auto-detection of current shell (bash, zsh, fish)",
+        "Smart duplicate detection prevents multiple completion installations",
+        "Clear post-installation instructions"
+      ],
+      "changed": [
+        "Shell completion setup simplified from manual editing to single command"
+      ]
+    }
   }
 }

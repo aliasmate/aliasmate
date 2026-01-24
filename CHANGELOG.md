@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.6.2] - 2026-01-24
+
+### Added
+- **Automated Completion Installation**
+  - New `aliasmate completion install` command for one-command setup
+  - Auto-detects current shell (bash, zsh, fish)
+  - Automatically adds completion to shell configuration files
+  - Prevents duplicate installations with smart detection
+  - Provides clear next steps after installation
+
+### Changed
+- **User Experience**
+  - Completion setup is now single command instead of manual editing
+
 ## [1.6.1] - 2026-01-24
 
 ### Fixed
