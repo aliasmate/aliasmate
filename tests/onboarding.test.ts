@@ -99,6 +99,33 @@ describe('onboarding system', () => {
         'utf8'
       );
     });
+
+    it('should NOT show upgrade message when downgrading', () => {
+      const newerState = {
+        version: '2.0.0', // Newer than current APP_VERSION
+        lastShownVersion: '2.0.0',
+        hasSeenWelcome: true,
+        installDate: '2024-01-01T00:00:00.000Z',
+      };
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(JSON.stringify(newerState) as any);
+
+      const result = checkAndShowOnboarding();
+
+      // Should show outdated version message (downgrade detected)
+      expect(result).toBe(true);
+      
+      // Should still update state
+      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      
+      // Should not show upgrade message, but should show outdated message
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+      const hasUpgrade = logCalls.some((log) => log.includes('upgraded from'));
+      const hasOutdated = logCalls.some((log) => log.includes('running AliasMate') || log.includes('Upgrade to'));
+      expect(hasUpgrade).toBe(false);
+      expect(hasOutdated).toBe(true);
+    });
   });
 
   describe('hasCompletedOnboarding', () => {

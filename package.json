@@ -1,6 +1,6 @@
 {
   "name": "aliasmate",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
   "main": "dist/cli.js",
   "bin": {

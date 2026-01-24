@@ -15,6 +15,25 @@ interface OnboardingState {
 const ONBOARDING_FILE = 'onboarding.json';
 
 /**
+ * Compare two semantic version strings
+ * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+ */
+function compareVersions(v1: string, v2: string): number {
+  const parts1 = v1.split('.').map(Number);
+  const parts2 = v2.split('.').map(Number);
+
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const num1 = parts1[i] || 0;
+    const num2 = parts2[i] || 0;
+
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+
+  return 0;
+}
+
+/**
  * Get the path to the onboarding state file
  */
 function getOnboardingPath(): string {
@@ -108,6 +127,37 @@ function showQuickTour(): void {
   console.log(chalk.cyan('   $ aliasmate run llm'));
   console.log(chalk.gray('   ✓ Generates llm.txt with all AliasMate features'));
   console.log(chalk.gray('   ✓ Share this file with AI assistants for better help'));
+  console.log();
+}
+
+/**
+ * Display message when user is on an older version (downgrade detected)
+ */
+function showOutdatedVersionMessage(currentVersion: string, newerVersion: string): void {
+  console.log();
+  console.log(chalk.yellow(`⚠️  You're running AliasMate v${currentVersion}`));
+  console.log(chalk.gray(`   A newer version (v${newerVersion}) was previously installed`));
+  console.log();
+
+  // Try to show what's available in the newer version
+  try {
+    const highlights = getUpgradeSummary(currentVersion, newerVersion);
+
+    if (highlights.length > 0) {
+      console.log(chalk.white('📦 Upgrade to get these features:'));
+      highlights.slice(0, 5).forEach((highlight) => {
+        console.log(chalk.cyan(`  • ${highlight}`));
+      });
+      console.log();
+    }
+  } catch (error) {
+    // Silent fallback
+  }
+
+  console.log(chalk.bold.cyan('🚀 Upgrade to the latest version:'));
+  console.log(chalk.white('   npm install -g aliasmate@latest'));
+  console.log();
+  console.log(chalk.gray('   Or check what\'s new:') + chalk.cyan(' aliasmate changelog'));
   console.log();
 }
 
@@ -238,10 +288,19 @@ export function checkAndShowOnboarding(): boolean {
     return true;
   }
 
-  // Version upgrade
+  // Version change detected
   if (state.version !== currentVersion) {
-    showUpgradeMessage(state.version, currentVersion);
+    const comparison = compareVersions(currentVersion, state.version);
 
+    if (comparison > 0) {
+      // Upgrade: show what's new
+      showUpgradeMessage(state.version, currentVersion);
+    } else if (comparison < 0) {
+      // Downgrade: encourage user to upgrade to latest
+      showOutdatedVersionMessage(currentVersion, state.version);
+    }
+
+    // Update state regardless (upgrade or downgrade)
     const updatedState: OnboardingState = {
       ...state,
       version: currentVersion,
@@ -249,7 +308,7 @@ export function checkAndShowOnboarding(): boolean {
     };
 
     saveOnboardingState(updatedState);
-    return true;
+    return comparison !== 0; // Return true if we showed any message
   }
 
   return false;

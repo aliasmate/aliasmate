@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.6.1] - 2026-01-24
+
+### Fixed
+- **Onboarding Version Detection**
+  - Fixed bug where downgrade scenarios incorrectly showed "upgraded" message
+  - Added version comparison to distinguish upgrades from downgrades
+  - Now shows helpful "outdated version" message when running older version
+  - Encourages users to upgrade to latest version with feature highlights
+  - Properly handles version transitions in both directions
+
+### Changed
+- **User Experience**
+  - Outdated version message now displays available features from newer versions
+  - Clear upgrade instructions with npm command
+  - Motivational messaging to encourage staying on latest version
+
 ## [1.6.0] - 2026-01-22
 
 ### Added

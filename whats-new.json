@@ -182,5 +182,21 @@
         "Metadata storage now includes aliases and execution history"
       ]
     }
+  },
+  "1.6.1": {
+    "version": "1.6.1",
+    "date": "2026-01-24",
+    "sections": {
+      "fixed": [
+        "Fixed bug where downgrade scenarios incorrectly showed 'upgraded' message",
+        "Version detection now properly distinguishes upgrades from downgrades",
+        "Outdated version message now encourages users to upgrade to latest"
+      ],
+      "changed": [
+        "Outdated version message displays available features from newer versions",
+        "Added clear upgrade instructions with npm command",
+        "Improved user experience with motivational messaging for upgrades"
+      ]
+    }
   }
 }
