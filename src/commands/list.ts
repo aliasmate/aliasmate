@@ -1,14 +1,16 @@
 import chalk from 'chalk';
-import * as fs from 'fs';
 import { loadAliases } from '../storage';
 import { handleError } from '../utils/errors';
 import { HELP_MESSAGES } from '../utils/constants';
+import { formatAliases, OutputFormat } from '../utils/formatters';
 
 /**
  * List all saved commands with their details
  *
  * Displays commands alphabetically with their command text and working directory.
  * If no commands are saved, provides guidance on how to save commands.
+ *
+ * @param format - Output format: 'table' (default), 'json', 'yaml', or 'compact'
  *
  * @example
  * ```
@@ -24,61 +26,25 @@ import { HELP_MESSAGES } from '../utils/constants';
  * //     Directory: /home/user/scripts
  * ```
  */
-export function listCommand(): void {
+export function listCommand(format: OutputFormat = 'table'): void {
   try {
     const aliases = loadAliases();
     const names = Object.keys(aliases);
 
     if (names.length === 0) {
-      console.log(chalk.yellow(HELP_MESSAGES.noCommands));
-      console.log(chalk.gray(HELP_MESSAGES.useSaveOrPrev));
+      if (format === 'json') {
+        console.log('{}');
+      } else if (format === 'yaml') {
+        console.log('');
+      } else {
+        console.log(chalk.yellow(HELP_MESSAGES.noCommands));
+        console.log(chalk.gray(HELP_MESSAGES.useSaveOrPrev));
+      }
       return;
     }
 
-    console.log(chalk.bold(`\nSaved commands (${names.length}):\n`));
-
-    // Sort alphabetically
-    names.sort();
-
-    for (const name of names) {
-      const alias = aliases[name];
-      // Check if directory still exists
-      const dirExists = fs.existsSync(alias.directory);
-      const dirIndicator = dirExists ? '' : chalk.red(' [DIR NOT FOUND]');
-
-      // Get path mode with backward compatibility
-      const pathMode = alias.pathMode || 'saved';
-
-      // Truncate long commands for display
-      const maxCommandLength = 100;
-      let displayCommand = alias.command;
-      if (displayCommand.length > maxCommandLength) {
-        // Check if it's the llm command or other multi-line command
-        const firstLine = displayCommand.split('\n')[0];
-        if (firstLine.length > maxCommandLength) {
-          displayCommand = firstLine.substring(0, maxCommandLength) + '...';
-        } else {
-          displayCommand = firstLine + ' [...]';
-        }
-      }
-
-      console.log(chalk.cyan(`  ${name}${dirIndicator}`));
-      console.log(chalk.gray(`    Command: ${displayCommand}`));
-      console.log(chalk.gray(`    Directory: ${alias.directory}`));
-      console.log(chalk.gray(`    Path Mode: ${pathMode === 'saved' ? '📁 Saved' : '📍 Current'}`));
-
-      // Show env var count if any are saved
-      if (alias.env && Object.keys(alias.env).length > 0) {
-        console.log(
-          chalk.gray(`    Environment Variables: ${Object.keys(alias.env).length} saved`)
-        );
-      }
-
-      if (alias.createdAt) {
-        console.log(chalk.gray(`    Created: ${new Date(alias.createdAt).toLocaleString()}`));
-      }
-      console.log();
-    }
+    const output = formatAliases(aliases, format);
+    console.log(output);
   } catch (error) {
     handleError(error, 'Failed to list commands');
   }

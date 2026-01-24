@@ -3,7 +3,7 @@
  */
 
 export const APP_NAME = 'aliasmate';
-export const APP_VERSION = '1.5.1';
+export const APP_VERSION = '1.6.1';
 export const CONFIG_DIR_NAME = '.config/aliasmate';
 export const CONFIG_FILE_NAME = 'config.json';
 

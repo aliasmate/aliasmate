@@ -36,7 +36,8 @@ describe('edit command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await editCommand('test-alias');
+    // Pass false to skip validation
+    await editCommand('test-alias', false);
 
     expect(storage.setAlias).toHaveBeenCalledWith(
       'test-alias',
@@ -75,7 +76,7 @@ describe('edit command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await editCommand('test-alias');
+    await editCommand('test-alias', false);
 
     expect(storage.setAlias).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No changes'));
@@ -99,7 +100,7 @@ describe('edit command', () => {
     jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't update env
     jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await editCommand('test-alias');
+    await editCommand('test-alias', false);
 
     expect(promptSpy).toHaveBeenCalled();
     // Check that prompt was called with current values as defaults
@@ -141,7 +142,7 @@ describe('edit command', () => {
       API_URL: 'https://api.example.com',
     };
 
-    await editCommand('test-alias');
+    await editCommand('test-alias', false);
 
     process.env = originalEnv;
 
@@ -193,7 +194,7 @@ describe('edit command', () => {
       NODE_ENV: 'production',
     };
 
-    await editCommand('test-alias');
+    await editCommand('test-alias', false);
 
     process.env = originalEnv;
 
@@ -231,7 +232,7 @@ describe('edit command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await editCommand('test-alias');
+    await editCommand('test-alias', false);
 
     // Should not be called since no changes (command/dir/pathMode same, env not updated)
     expect(storage.setAlias).not.toHaveBeenCalled();

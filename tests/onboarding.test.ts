@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'fs';
 import { checkAndShowOnboarding, hasCompletedOnboarding } from '../src/utils/onboarding';
+import { APP_VERSION } from '../src/utils/constants';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -62,8 +63,8 @@ describe('onboarding system', () => {
 
     it('should not show onboarding for same version', () => {
       const currentState = {
-        version: '1.5.1',
-        lastShownVersion: '1.5.1',
+        version: APP_VERSION,
+        lastShownVersion: APP_VERSION,
         hasSeenWelcome: true,
         installDate: '2024-01-01T00:00:00.000Z',
       };
@@ -94,9 +95,36 @@ describe('onboarding system', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining('onboarding.json'),
-        expect.stringContaining('1.5.1'),
+        expect.stringContaining(APP_VERSION),
         'utf8'
       );
+    });
+
+    it('should NOT show upgrade message when downgrading', () => {
+      const newerState = {
+        version: '2.0.0', // Newer than current APP_VERSION
+        lastShownVersion: '2.0.0',
+        hasSeenWelcome: true,
+        installDate: '2024-01-01T00:00:00.000Z',
+      };
+
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(JSON.stringify(newerState) as any);
+
+      const result = checkAndShowOnboarding();
+
+      // Should show outdated version message (downgrade detected)
+      expect(result).toBe(true);
+      
+      // Should still update state
+      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      
+      // Should not show upgrade message, but should show outdated message
+      const logCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+      const hasUpgrade = logCalls.some((log) => log.includes('upgraded from'));
+      const hasOutdated = logCalls.some((log) => log.includes('running AliasMate') || log.includes('Upgrade to'));
+      expect(hasUpgrade).toBe(false);
+      expect(hasOutdated).toBe(true);
     });
   });
 

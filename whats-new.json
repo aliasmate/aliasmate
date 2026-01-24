@@ -150,5 +150,53 @@
         "Silently recreates llm command with the latest version"
       ]
     }
+  },
+  "1.6.0": {
+    "version": "1.6.0",
+    "date": "2026-01-22",
+    "sections": {
+      "added": [
+        "Command Aliases: Create short aliases for frequently used commands (aliasmate alias <short> <command>)",
+        "Recent Commands: Track and display recently executed commands with timestamps (aliasmate recent)",
+        "@N syntax: Quick re-execution of recent commands (aliasmate run @0 for most recent)",
+        "Auto-completion Support: Shell completion for bash, zsh, and fish (aliasmate completion <shell>)",
+        "Dry Run Mode: Preview commands before execution with --dry-run flag",
+        "Command Validation: Verify commands and directories when saving (aliasmate validate <name>)",
+        "Output Formatting: Multiple formats for list/export (JSON, YAML, table, compact)",
+        "Alias management: List (--list) and remove (--remove) commands for aliases",
+        "Execution tracking: Automatic recording of command executions with timestamps",
+        "Configurable recent history: Adjustable history size (default: 50 entries)",
+        "Dangerous command detection: Warnings for potentially destructive commands in dry-run",
+        "Validation bypass: --no-validate flag for save and edit commands",
+        "Time-ago formatting: Human-readable timestamps (e.g., '2 minutes ago')",
+        "Shell syntax validation: Basic validation for quotes, brackets, and operators",
+        "Directory permission checks: Validates read/write/execute permissions",
+        "Environment variable validation: Checks for valid variable name patterns"
+      ],
+      "changed": [
+        "Run command now supports alias resolution automatically",
+        "Run command enhanced with @N syntax for recent commands",
+        "List command supports multiple output formats (--format flag)",
+        "Export command supports JSON and YAML formats",
+        "Save/Edit commands include optional validation bypass",
+        "Metadata storage now includes aliases and execution history"
+      ]
+    }
+  },
+  "1.6.1": {
+    "version": "1.6.1",
+    "date": "2026-01-24",
+    "sections": {
+      "fixed": [
+        "Fixed bug where downgrade scenarios incorrectly showed 'upgraded' message",
+        "Version detection now properly distinguishes upgrades from downgrades",
+        "Outdated version message now encourages users to upgrade to latest"
+      ],
+      "changed": [
+        "Outdated version message displays available features from newer versions",
+        "Added clear upgrade instructions with npm command",
+        "Improved user experience with motivational messaging for upgrades"
+      ]
+    }
   }
 }

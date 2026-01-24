@@ -11,11 +11,13 @@ import {
   CheckboxPrompt,
 } from '../utils/prompts';
 import { getUserEnvVars, categorizeEnvVars, formatEnvVars } from '../utils/env';
+import { validateCommandAlias } from '../utils/validator';
 
 /**
  * Interactively save a new command with prompts
  *
  * @param cwd - The default working directory to suggest (defaults to process.cwd())
+ * @param shouldValidate - Whether to validate the command (defaults to true)
  *
  * @example
  * ```
@@ -26,7 +28,10 @@ import { getUserEnvVars, categorizeEnvVars, formatEnvVars } from '../utils/env';
  * await saveCommand();
  * ```
  */
-export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
+export async function saveCommand(
+  cwd: string = process.cwd(),
+  shouldValidate: boolean = true
+): Promise<void> {
   try {
     // Prompt for command details including path mode
     const prompts: (TextInputPrompt | ListPrompt)[] = [
@@ -182,6 +187,55 @@ export async function saveCommand(cwd: string = process.cwd()): Promise<void> {
             );
           }
         }
+      }
+    }
+
+    // Validate the command if requested
+    if (shouldValidate) {
+      console.log(chalk.blue('\nValidating command...'));
+      const report = validateCommandAlias(
+        answers.command,
+        answers.directory,
+        Object.keys(selectedEnv).length > 0 ? selectedEnv : undefined
+      );
+
+      if (report.issues.length > 0) {
+        const errors = report.issues.filter((issue) => issue.type === 'error');
+        const warnings = report.issues.filter((issue) => issue.type === 'warning');
+
+        if (errors.length > 0) {
+          console.log(chalk.red(`\n✗ Validation failed with ${errors.length} error(s):\n`));
+          for (const error of errors) {
+            console.log(chalk.red(`  [${error.field}] ${error.message}`));
+          }
+          console.log();
+          console.log(chalk.yellow('Use --no-validate flag to skip validation'));
+          process.exit(ExitCode.InvalidInput);
+        }
+
+        if (warnings.length > 0) {
+          console.log(chalk.yellow(`\n⚠  ${warnings.length} warning(s):\n`));
+          for (const warning of warnings) {
+            console.log(chalk.yellow(`  [${warning.field}] ${warning.message}`));
+          }
+
+          const continuePrompt: ConfirmPrompt = {
+            type: 'confirm',
+            name: 'continue',
+            message: 'Continue saving despite warnings?',
+            default: true,
+          };
+
+          const shouldContinue = await promptConfirm(continuePrompt);
+          if (!shouldContinue) {
+            console.log(chalk.yellow('Save cancelled'));
+            return;
+          }
+        } else {
+          console.log(chalk.green('✓ Validation passed'));
+        }
+      } else {
+        console.log(chalk.green('✓ Validation passed'));
       }
     }
 
