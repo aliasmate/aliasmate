@@ -1,4 +1,7 @@
 import chalk from 'chalk';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { loadAliases } from '../storage';
 
 /**
@@ -326,15 +329,145 @@ complete -c aliasmate -n "__fish_seen_subcommand_from import export" -F
 }
 
 /**
+ * Detect the user's current shell
+ */
+export function detectShell(): string | null {
+  const shell = process.env.SHELL || '';
+  
+  if (shell.includes('bash')) return 'bash';
+  if (shell.includes('zsh')) return 'zsh';
+  if (shell.includes('fish')) return 'fish';
+  
+  return null;
+}
+
+/**
+ * Get the shell config file path
+ */
+export function getShellConfigPath(shell: string): string {
+  const homeDir = os.homedir();
+  
+  switch (shell) {
+    case 'bash':
+      return path.join(homeDir, '.bashrc');
+    case 'zsh':
+      return path.join(homeDir, '.zshrc');
+    case 'fish':
+      // For fish, return the completions file path
+      return path.join(homeDir, '.config', 'fish', 'completions', 'aliasmate.fish');
+    default:
+      throw new Error(`Unsupported shell: ${shell}`);
+  }
+}
+
+/**
+ * Install completion for the specified shell
+ */
+export function installCompletion(shell?: string): void {
+  try {
+    // Detect shell if not specified
+    const targetShell = shell?.toLowerCase() || detectShell();
+    
+    if (!targetShell) {
+      console.error(chalk.red('Error: Could not detect your shell'));
+      console.log(chalk.yellow('Please specify the shell explicitly:'));
+      console.log(chalk.cyan('  aliasmate completion install bash'));
+      console.log(chalk.cyan('  aliasmate completion install zsh'));
+      console.log(chalk.cyan('  aliasmate completion install fish'));
+      process.exit(1);
+    }
+
+    if (!['bash', 'zsh', 'fish'].includes(targetShell)) {
+      console.error(chalk.red(`Error: Unsupported shell "${targetShell}"`));
+      console.log(chalk.yellow('Supported shells: bash, zsh, fish'));
+      process.exit(1);
+    }
+
+    const configPath = getShellConfigPath(targetShell);
+    const completionLine = targetShell === 'fish'
+      ? "# AliasMate completion (run 'aliasmate completion fish > ~/.config/fish/completions/aliasmate.fish')"
+      : `source <(aliasmate completion ${targetShell})  # AliasMate completion`;
+
+    // Check if already installed
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      if (configContent.includes('aliasmate completion')) {
+        console.log(chalk.yellow('✓ AliasMate completion is already installed'));
+        console.log(chalk.gray(`  Found in: ${configPath}`));
+        console.log();
+        console.log(chalk.gray('To reload:'));
+        console.log(chalk.cyan(`  source ${configPath}`));
+        return;
+      }
+    }
+
+    // For fish, we need to create the completions directory and file
+    if (targetShell === 'fish') {
+      const fishCompletionDir = path.join(os.homedir(), '.config', 'fish', 'completions');
+      const fishCompletionFile = path.join(fishCompletionDir, 'aliasmate.fish');
+
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(fishCompletionDir)) {
+        fs.mkdirSync(fishCompletionDir, { recursive: true });
+      }
+
+      // Write completion file
+      fs.writeFileSync(fishCompletionFile, generateFishCompletion(), 'utf8');
+
+      console.log(chalk.green('✓ AliasMate completion installed successfully!'));
+      console.log(chalk.gray(`  Installed to: ${fishCompletionFile}`));
+      console.log();
+      console.log(chalk.bold('Next steps:'));
+      console.log(chalk.gray('  1. Restart your terminal or run:'));
+      console.log(chalk.cyan('     exec fish'));
+      console.log(chalk.gray('  2. Test completion:'));
+      console.log(chalk.cyan('     aliasmate <TAB>'));
+    } else {
+      // For bash/zsh, append to config file
+      const configDir = path.dirname(configPath);
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+      }
+
+      // Append completion line
+      fs.appendFileSync(configPath, `\n# AliasMate completion\n${completionLine}\n`, 'utf8');
+
+      console.log(chalk.green('✓ AliasMate completion installed successfully!'));
+      console.log(chalk.gray(`  Added to: ${configPath}`));
+      console.log();
+      console.log(chalk.bold('Next steps:'));
+      console.log(chalk.gray('  1. Reload your shell config:'));
+      console.log(chalk.cyan(`     source ${configPath}`));
+      console.log(chalk.gray('  2. Test completion:'));
+      console.log(chalk.cyan('     aliasmate <TAB>'));
+    }
+  } catch (error) {
+    console.error(chalk.red('Error installing completion:'));
+    console.error(chalk.red((error as Error).message));
+    process.exit(1);
+  }
+}
+
+/**
  * Display completion script for specified shell
  */
-export function completionCommand(shell?: string): void {
+export function completionCommand(shell?: string, options?: { install?: boolean }): void {
+  // Handle install subcommand
+  if (options?.install || shell === 'install') {
+    const targetShell = shell === 'install' ? undefined : shell;
+    installCompletion(targetShell);
+    return;
+  }
+
   if (!shell) {
     console.log(chalk.yellow('Usage: aliasmate completion <shell>'));
     console.log(chalk.gray('\nAvailable shells:'));
     console.log(chalk.gray('  bash  - Generate bash completion script'));
     console.log(chalk.gray('  zsh   - Generate zsh completion script'));
     console.log(chalk.gray('  fish  - Generate fish completion script'));
+    console.log(chalk.bold.cyan('\n🚀 Quick Install:'));
+    console.log(chalk.cyan('  aliasmate completion install'));
+    console.log(chalk.gray('  (Auto-detects your shell and installs completion)'));
     console.log(chalk.gray('\nExamples:'));
     console.log(chalk.cyan('  # Bash'));
     console.log(chalk.gray('  source <(aliasmate completion bash)'));
@@ -344,6 +477,8 @@ export function completionCommand(shell?: string): void {
     console.log(
       chalk.gray('  aliasmate completion fish > ~/.config/fish/completions/aliasmate.fish')
     );
+    console.log(chalk.bold.cyan('\n  # Auto-install (recommended)'));
+    console.log(chalk.gray('  aliasmate completion install'));
     return;
   }
 

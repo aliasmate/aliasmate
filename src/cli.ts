@@ -206,9 +206,10 @@ program
 // completion command - generate shell completion scripts
 program
   .command('completion [shell]')
-  .description('Generate shell completion script (bash, zsh, or fish)')
-  .action((shell: string | undefined) => {
-    completionCommand(shell);
+  .description('Generate shell completion script (bash, zsh, fish, or install)')
+  .option('--install', 'Install completion for your current shell')
+  .action((shell: string | undefined, options: { install?: boolean }) => {
+    completionCommand(shell, options);
   });
 
 // Handle unknown commands

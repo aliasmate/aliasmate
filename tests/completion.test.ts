@@ -4,8 +4,11 @@ import {
   generateBashCompletion,
   generateZshCompletion,
   generateFishCompletion,
+  detectShell,
+  getShellConfigPath,
 } from '../src/commands/completion';
 import * as storage from '../src/storage';
+import * as os from 'os';
 
 describe('completion commands', () => {
   let exitSpy: jest.SpiedFunction<typeof process.exit>;
@@ -288,6 +291,86 @@ describe('completion commands', () => {
 
       expect(result).toContain('-l limit');
       expect(result).toContain('-l clear');
+    });
+  });
+
+  describe('detectShell', () => {
+    it('should detect bash from $SHELL', () => {
+      const originalShell = process.env.SHELL;
+      process.env.SHELL = '/bin/bash';
+      
+      const result = detectShell();
+      
+      expect(result).toBe('bash');
+      process.env.SHELL = originalShell;
+    });
+
+    it('should detect zsh from $SHELL', () => {
+      const originalShell = process.env.SHELL;
+      process.env.SHELL = '/bin/zsh';
+      
+      const result = detectShell();
+      
+      expect(result).toBe('zsh');
+      process.env.SHELL = originalShell;
+    });
+
+    it('should detect fish from $SHELL', () => {
+      const originalShell = process.env.SHELL;
+      process.env.SHELL = '/usr/bin/fish';
+      
+      const result = detectShell();
+      
+      expect(result).toBe('fish');
+      process.env.SHELL = originalShell;
+    });
+
+    it('should return null for unknown shell', () => {
+      const originalShell = process.env.SHELL;
+      process.env.SHELL = '/bin/csh';
+      
+      const result = detectShell();
+      
+      expect(result).toBeNull();
+      process.env.SHELL = originalShell;
+    });
+
+    it('should return null if $SHELL is not set', () => {
+      const originalShell = process.env.SHELL;
+      delete process.env.SHELL;
+      
+      const result = detectShell();
+      
+      expect(result).toBeNull();
+      process.env.SHELL = originalShell;
+    });
+  });
+
+  describe('getShellConfigPath', () => {
+    it('should return .bashrc path for bash', () => {
+      const result = getShellConfigPath('bash');
+      const expectedPath = `${os.homedir()}/.bashrc`;
+      expect(result).toBe(expectedPath);
+    });
+
+    it('should return .zshrc path for zsh', () => {
+      const result = getShellConfigPath('zsh');
+      const expectedPath = `${os.homedir()}/.zshrc`;
+      expect(result).toBe(expectedPath);
+    });
+
+    it('should return fish completions file path for fish', () => {
+      const result = getShellConfigPath('fish');
+      const expectedPath = `${os.homedir()}/.config/fish/completions/aliasmate.fish`;
+      expect(result).toBe(expectedPath);
+    });
+
+    it('should use os.homedir() when constructing paths', () => {
+      // This test verifies that os.homedir() is used internally
+      // We test by checking that the path is constructed correctly
+      const result = getShellConfigPath('bash');
+      expect(result).toContain('.bashrc');
+      expect(result.startsWith('/')).toBe(true);
     });
   });
 });
