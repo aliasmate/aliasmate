@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'fs';
 import { checkAndShowOnboarding, hasCompletedOnboarding } from '../src/utils/onboarding';
+import { APP_VERSION } from '../src/utils/constants';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -62,8 +63,8 @@ describe('onboarding system', () => {
 
     it('should not show onboarding for same version', () => {
       const currentState = {
-        version: '1.5.1',
-        lastShownVersion: '1.5.1',
+        version: APP_VERSION,
+        lastShownVersion: APP_VERSION,
         hasSeenWelcome: true,
         installDate: '2024-01-01T00:00:00.000Z',
       };
@@ -94,7 +95,7 @@ describe('onboarding system', () => {
 
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining('onboarding.json'),
-        expect.stringContaining('1.5.1'),
+        expect.stringContaining(APP_VERSION),
         'utf8'
       );
     });

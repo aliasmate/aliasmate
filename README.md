@@ -27,9 +27,15 @@ Whether you're a solo developer or part of a team, AliasMate helps you streamlin
 - 🌍 **Environment variable capture** - Save and restore environment variables with commands
 - 🔒 **Security-focused** - Automatic masking of sensitive variables (API keys, tokens)
 - ⚡ **Quick execution** of saved commands with optional path override
+- 🏷️ **Command aliases** - Create short aliases for frequently used commands
+- 📜 **Recent commands** - Track and quickly re-run recent commands with @N syntax
+- ⚙️ **Auto-completion** - Shell completion for bash, zsh, and fish
+- 🔍 **Dry-run mode** - Preview commands before execution with --dry-run flag
+- ✅ **Command validation** - Verify commands and directories when saving
+- 📊 **Output formatting** - Multiple formats (JSON, YAML, table, compact)
 - 📝 **Interactive save** with prompts for command and path
 - 📋 **List all saved commands** with their details
-- 🔍 **Search commands** by name, text, or directory
+- 🔎 **Search commands** by name, text, or directory
 - ✏️ **Edit commands** interactively with environment variable management
 - 🗑️ **Delete unwanted commands**
 - 📤 **Export/Import** commands for backup or sharing
@@ -45,6 +51,58 @@ Install globally via npm:
 
 ```bash
 npm i -g aliasmate
+```
+
+## Shell Completion (Optional)
+
+AliasMate supports auto-completion for bash, zsh, and fish shells. This provides tab completion for commands, saved command names, and flags.
+
+### Bash
+
+Add to your `~/.bashrc`:
+```bash
+source <(aliasmate completion bash)
+```
+
+Then reload:
+```bash
+source ~/.bashrc
+```
+
+### Zsh
+
+Add to your `~/.zshrc`:
+```bash
+source <(aliasmate completion zsh)
+```
+
+Then reload:
+```bash
+source ~/.zshrc
+```
+
+### Fish
+
+Generate the completion file:
+```bash
+aliasmate completion fish > ~/.config/fish/completions/aliasmate.fish
+```
+
+Fish will automatically load it on next shell start.
+
+### What Gets Completed
+
+- Main commands (run, list, save, etc.)
+- Your saved command names
+- Command flags and options
+- File paths for import/export
+- Format options (json, yaml, table, compact)
+
+**Example:**
+```bash
+aliasmate ru<TAB>      # Completes to "run"
+aliasmate run bu<TAB>  # Completes to your saved "build" command
+aliasmate list --fo<TAB>  # Completes to "--format"
 ```
 
 ## Shell Configuration (Recommended)
@@ -140,6 +198,18 @@ Or override the directory:
 ```bash
 aliasmate run <name> .
 aliasmate run <name> /path/to/another/project
+```
+
+**Dry-run mode** (preview without executing):
+```bash
+aliasmate run <name> --dry-run
+aliasmate run <name> --dry-run --verbose
+```
+
+**Run recent commands** by index:
+```bash
+aliasmate run @0  # Run most recent command
+aliasmate run @1  # Run second most recent
 ```
 
 **Example:**
@@ -374,6 +444,222 @@ When you upgrade AliasMate, you'll automatically see:
 
 This ensures you never miss important features or fixes when upgrading!
 
+### Command Aliases
+
+Create short aliases for frequently used saved commands:
+
+```bash
+# Create an alias
+aliasmate alias b build
+aliasmate alias d deploy-prod
+
+# List all aliases
+aliasmate alias --list
+
+# Remove an alias
+aliasmate alias --remove b
+```
+
+**Features:**
+- Keyboard-friendly shortcuts for long command names
+- Validates against reserved command names
+- Shows both alias and original command when executing
+- Stored separately from commands in metadata
+
+**Example:**
+```bash
+# Create aliases for common commands
+aliasmate alias b build
+aliasmate alias t test
+aliasmate alias dp deploy-prod
+
+# Use the aliases
+aliasmate run b      # Runs 'build' command
+aliasmate run @0     # Runs most recent command
+```
+
+### Recent Commands
+
+Track and quickly re-run recently executed commands:
+
+```bash
+# View recent commands
+aliasmate recent
+
+# Limit the list
+aliasmate recent --limit 10
+
+# Clear history
+aliasmate recent --clear
+```
+
+**Quick re-execution with @N syntax:**
+```bash
+aliasmate run @0  # Run most recent command
+aliasmate run @1  # Run second most recent
+aliasmate run @2  # Run third most recent
+```
+
+**Features:**
+- Automatic execution tracking
+- Deduplicated display (shows unique commands)
+- Shows last run time and execution count
+- Configurable history size (default: 50)
+- Time-ago formatting (e.g., "2 minutes ago")
+
+### Dry-Run Mode
+
+Preview what will execute before running a command:
+
+```bash
+# Basic preview
+aliasmate run build --dry-run
+
+# Detailed preview with env vars
+aliasmate run build --dry-run --verbose
+```
+
+**What you'll see:**
+- Full command to be executed
+- Working directory
+- Path mode (saved/current/overridden)
+- Environment variables (with sensitive values masked)
+- Dangerous command warnings (rm -rf, dd, etc.)
+
+**Example output:**
+```
+🔍 DRY RUN MODE - Command will NOT be executed
+
+Command:
+  npm run build --production
+
+Working Directory:
+  /path/to/project
+
+Path Mode:
+  saved
+
+Environment Variables:
+  3 variable(s) will be loaded
+  
+  NODE_ENV=production
+  API_URL=https://api.example.com
+  API_KEY=abc***xyz (masked)
+
+⚠️  WARNING: This command may be dangerous
+
+To execute, run without --dry-run flag
+```
+
+### Command Validation
+
+Validate commands when saving to catch errors early:
+
+```bash
+# Validate a single command
+aliasmate validate build
+
+# Validate all commands
+aliasmate validate --all
+
+# Skip validation when saving (bypass checks)
+aliasmate save --no-validate
+aliasmate edit <name> --no-validate
+```
+
+**What gets validated:**
+- **Command existence:** Checks if command is in PATH or is a shell builtin
+- **Directory existence:** Verifies directory exists and is accessible
+- **Shell syntax:** Basic syntax validation (quotes, brackets, pipes)
+- **Environment variables:** Validates variable name patterns
+
+**Validation types:**
+- **Errors:** Block command execution (red)
+  - Command not found
+  - Directory doesn't exist
+  - Invalid syntax
+  
+- **Warnings:** Allow execution with notice (yellow)
+  - Undefined environment variables
+  - Non-executable file paths
+
+**Example:**
+```bash
+$ aliasmate validate build
+
+Validating command: build
+
+✓ No issues found
+  Command: npm run build
+  Directory: /path/to/project
+  Environment Variables: 2
+
+$ aliasmate validate --all
+
+Validating 15 saved commands...
+
+✓ 13 commands passed validation
+⚠ 2 commands have warnings
+
+Commands with issues:
+  deploy: Warning - Command 'deploy.sh' not found in PATH
+```
+
+### Output Formatting
+
+Export or view commands in multiple formats:
+
+```bash
+# List in different formats
+aliasmate list --format table     # Default human-readable
+aliasmate list --format json      # Machine-readable JSON
+aliasmate list --format yaml      # YAML format
+aliasmate list --format compact   # One-line per command
+
+# Export with format
+aliasmate export commands.json --format json
+aliasmate export commands.yaml --format yaml
+```
+
+**Format examples:**
+
+**JSON:**
+```json
+{
+  "build": {
+    "command": "npm run build",
+    "directory": "/path/to/project",
+    "pathMode": "saved",
+    "env": { "NODE_ENV": "production" },
+    "createdAt": "2026-01-22T10:00:00Z"
+  }
+}
+```
+
+**YAML:**
+```yaml
+build:
+  command: "npm run build"
+  directory: "/path/to/project"
+  pathMode: saved
+  env:
+    NODE_ENV: "production"
+  createdAt: "2026-01-22T10:00:00Z"
+```
+
+**Compact:**
+```
+build: npm run build (/path/to/project)
+test: npm test (/path/to/project)
+deploy: ./deploy.sh (/path/to/scripts)
+```
+
+**Use cases:**
+- CI/CD integration (JSON/YAML)
+- Scripting and automation
+- Quick scanning (compact)
+- Team sharing with sensitive data masked
+
 ## Configuration
 
 Commands are stored in:
@@ -386,13 +672,28 @@ Commands are stored in:
 |---------|---------|-------------|
 | `aliasmate prev <name>` | - | Save the previous command from shell history (with optional env vars) |
 | `aliasmate run <name> [path]` | - | Run a saved command (restores env vars, optionally override directory) |
+| `aliasmate run @N` | - | Run Nth recent command (e.g., @0 = most recent) |
+| `aliasmate run <name> --dry-run` | - | Preview command without executing |
 | `aliasmate save` | - | Interactively save a new command (with optional env vars) |
+| `aliasmate save --no-validate` | - | Save command without validation |
 | `aliasmate list` | `ls` | List all saved commands (shows env var indicators) |
+| `aliasmate list --format <type>` | - | List in different formats (table/json/yaml/compact) |
 | `aliasmate search <query>` | `find` | Search for commands by name, text, or directory |
 | `aliasmate edit <name>` | - | Edit a saved command (manage env vars, path mode, etc.) |
+| `aliasmate edit <name> --no-validate` | - | Edit command without validation |
 | `aliasmate delete <name>` | `rm` | Delete a saved command |
-| `aliasmate export <file>` | - | Export commands to a JSON file (sensitive vars masked) |
-| `aliasmate import <file>` | - | Import commands from a JSON file (auto backup) |
+| `aliasmate export <file>` | - | Export commands to a file (sensitive vars masked) |
+| `aliasmate export <file> --format <type>` | - | Export in JSON or YAML format |
+| `aliasmate import <file>` | - | Import commands from a file (auto backup) |
+| `aliasmate alias <short> <command>` | - | Create alias for a command |
+| `aliasmate alias --list` | - | List all aliases |
+| `aliasmate alias --remove <alias>` | - | Remove an alias |
+| `aliasmate recent` | - | Show recently executed commands |
+| `aliasmate recent --limit <N>` | - | Limit recent commands displayed |
+| `aliasmate recent --clear` | - | Clear execution history |
+| `aliasmate validate <name>` | - | Validate a single command |
+| `aliasmate validate --all` | - | Validate all saved commands |
+| `aliasmate completion <shell>` | - | Generate shell completion script (bash, zsh, fish) |
 | `aliasmate changelog` | `changes` | View version changelog and release notes |
 | `aliasmate config` | - | Show config file location and command count |
 

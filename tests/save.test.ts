@@ -20,7 +20,7 @@ describe('save command', () => {
     jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't capture env
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     expect(storage.setAlias).toHaveBeenCalledWith(
       'test-alias',
@@ -47,7 +47,7 @@ describe('save command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     expect(storage.setAlias).toHaveBeenCalledWith(
       'existing',
@@ -74,7 +74,7 @@ describe('save command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     expect(storage.setAlias).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe('save command', () => {
     jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't capture env
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     expect(storage.setAlias).toHaveBeenCalledWith(
       'test-current',
@@ -115,7 +115,7 @@ describe('save command', () => {
     jest.spyOn(storage, 'setAlias').mockReturnValue(true);
     jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't capture env
 
-    await saveCommand('/custom/path');
+    await saveCommand('/custom/path', false); // Skip validation
 
     // The custom path should be used as the default in prompts
     expect(promptSpy).toHaveBeenCalled();
@@ -150,7 +150,7 @@ describe('save command', () => {
       PATH: '/usr/bin',
     };
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     process.env = originalEnv;
 
@@ -181,7 +181,7 @@ describe('save command', () => {
     jest.spyOn(prompts, 'promptConfirm').mockResolvedValue(false); // Don't capture env
     jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     expect(storage.setAlias).toHaveBeenCalledWith(
       'test-no-env',
@@ -215,7 +215,7 @@ describe('save command', () => {
       MY_VAR: 'value',
     };
 
-    await saveCommand();
+    await saveCommand(undefined, false); // Skip validation
 
     process.env = originalEnv;
 

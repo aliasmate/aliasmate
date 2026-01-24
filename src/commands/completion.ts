@@ -1,0 +1,367 @@
+import chalk from 'chalk';
+import { loadAliases } from '../storage';
+
+/**
+ * Generate bash completion script
+ */
+export function generateBashCompletion(): string {
+  const aliases = loadAliases();
+  const commandNames = Object.keys(aliases);
+  const commandList = commandNames.join(' ');
+
+  return `# Bash completion for aliasmate
+# Source this file or add it to your ~/.bashrc:
+#   source <(aliasmate completion bash)
+
+_aliasmate_completion() {
+    local cur prev opts base
+    COMPREPLY=()
+    cur="\${COMP_WORDS[COMP_CWORD]}"
+    prev="\${COMP_WORDS[COMP_CWORD-1]}"
+
+    # Main commands
+    local commands="prev run save list ls search find recent delete rm edit export import changelog alias validate config completion"
+    
+    # Saved command names
+    local saved_commands="${commandList}"
+
+    # Options for specific commands
+    case "\${COMP_WORDS[1]}" in
+        run)
+            case "\${prev}" in
+                run)
+                    COMPREPLY=( $(compgen -W "\${saved_commands}" -- \${cur}) )
+                    return 0
+                    ;;
+                --format)
+                    COMPREPLY=( $(compgen -W "table json yaml compact" -- \${cur}) )
+                    return 0
+                    ;;
+                *)
+                    if [[ \${cur} == -* ]] ; then
+                        COMPREPLY=( $(compgen -W "--dry-run --verbose" -- \${cur}) )
+                        return 0
+                    else
+                        COMPREPLY=( $(compgen -d -- \${cur}) )
+                        return 0
+                    fi
+                    ;;
+            esac
+            ;;
+        list|ls)
+            case "\${prev}" in
+                --format)
+                    COMPREPLY=( $(compgen -W "table json yaml compact" -- \${cur}) )
+                    return 0
+                    ;;
+                *)
+                    if [[ \${cur} == -* ]] ; then
+                        COMPREPLY=( $(compgen -W "--format" -- \${cur}) )
+                        return 0
+                    fi
+                    ;;
+            esac
+            ;;
+        export)
+            case "\${prev}" in
+                --format)
+                    COMPREPLY=( $(compgen -W "json yaml" -- \${cur}) )
+                    return 0
+                    ;;
+                export)
+                    COMPREPLY=( $(compgen -f -- \${cur}) )
+                    return 0
+                    ;;
+                *)
+                    if [[ \${cur} == -* ]] ; then
+                        COMPREPLY=( $(compgen -W "--format" -- \${cur}) )
+                        return 0
+                    fi
+                    ;;
+            esac
+            ;;
+        import)
+            case "\${prev}" in
+                import)
+                    COMPREPLY=( $(compgen -f -- \${cur}) )
+                    return 0
+                    ;;
+            esac
+            ;;
+        delete|rm|edit|validate|prev)
+            case "\${prev}" in
+                delete|rm|edit|validate|prev)
+                    COMPREPLY=( $(compgen -W "\${saved_commands}" -- \${cur}) )
+                    return 0
+                    ;;
+            esac
+            ;;
+        alias)
+            case "\${prev}" in
+                alias)
+                    if [[ \${cur} == -* ]] ; then
+                        COMPREPLY=( $(compgen -W "--list --remove" -- \${cur}) )
+                        return 0
+                    fi
+                    ;;
+                --remove)
+                    # Get aliases from storage
+                    COMPREPLY=( $(compgen -W "\${saved_commands}" -- \${cur}) )
+                    return 0
+                    ;;
+            esac
+            ;;
+        recent)
+            case "\${prev}" in
+                --limit)
+                    return 0
+                    ;;
+                *)
+                    if [[ \${cur} == -* ]] ; then
+                        COMPREPLY=( $(compgen -W "--limit --clear" -- \${cur}) )
+                        return 0
+                    fi
+                    ;;
+            esac
+            ;;
+        save)
+            if [[ \${cur} == -* ]] ; then
+                COMPREPLY=( $(compgen -W "--no-validate" -- \${cur}) )
+                return 0
+            fi
+            ;;
+        completion)
+            case "\${prev}" in
+                completion)
+                    COMPREPLY=( $(compgen -W "bash zsh fish" -- \${cur}) )
+                    return 0
+                    ;;
+            esac
+            ;;
+        *)
+            COMPREPLY=( $(compgen -W "\${commands}" -- \${cur}) )
+            return 0
+            ;;
+    esac
+}
+
+complete -F _aliasmate_completion aliasmate
+`;
+}
+
+/**
+ * Generate zsh completion script
+ */
+export function generateZshCompletion(): string {
+  const aliases = loadAliases();
+  const commandNames = Object.keys(aliases);
+  const commandList = commandNames.map((name) => `'${name}'`).join(' ');
+
+  return `#compdef aliasmate
+# Zsh completion for aliasmate
+# Add this file to your fpath or add to ~/.zshrc:
+#   source <(aliasmate completion zsh)
+
+_aliasmate() {
+    local line state
+
+    _arguments -C \\
+        "1: :->cmds" \\
+        "*::arg:->args"
+
+    case "$state" in
+        cmds)
+            _values 'commands' \\
+                'prev[Save previous command from history]' \\
+                'run[Run a saved command]' \\
+                'save[Interactively save a command]' \\
+                'list[List all saved commands]' \\
+                'ls[List all saved commands]' \\
+                'search[Search for commands]' \\
+                'find[Search for commands]' \\
+                'recent[Show recently executed commands]' \\
+                'delete[Delete a saved command]' \\
+                'rm[Delete a saved command]' \\
+                'edit[Edit a saved command]' \\
+                'export[Export commands to file]' \\
+                'import[Import commands from file]' \\
+                'changelog[View version changelog]' \\
+                'alias[Create, list, or remove aliases]' \\
+                'validate[Validate command(s)]' \\
+                'config[Show config file location]' \\
+                'completion[Generate shell completion script]'
+            ;;
+        args)
+            case "$line[1]" in
+                run)
+                    _arguments \\
+                        '1:command name:(${commandList})' \\
+                        '2:path:_files -/' \\
+                        '--dry-run[Preview without executing]' \\
+                        '--verbose[Show detailed information]'
+                    ;;
+                list|ls)
+                    _arguments \\
+                        '--format[Output format]:format:(table json yaml compact)'
+                    ;;
+                export)
+                    _arguments \\
+                        '1:file:_files' \\
+                        '--format[Output format]:format:(json yaml)'
+                    ;;
+                import)
+                    _arguments \\
+                        '1:file:_files'
+                    ;;
+                delete|rm|edit|validate|prev)
+                    _arguments \\
+                        "1:command name:(${commandList})"
+                    ;;
+                search|find)
+                    _arguments \\
+                        '1:query:'
+                    ;;
+                alias)
+                    _arguments \\
+                        '1:alias name:' \\
+                        '2:command name:(${commandList})' \\
+                        '--list[List all aliases]' \\
+                        '--remove[Remove an alias]:alias:(${commandList})'
+                    ;;
+                recent)
+                    _arguments \\
+                        '--limit[Maximum number to display]:limit:' \\
+                        '--clear[Clear execution history]'
+                    ;;
+                save)
+                    _arguments \\
+                        '--no-validate[Skip validation checks]'
+                    ;;
+                completion)
+                    _arguments \\
+                        '1:shell:(bash zsh fish)'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+compdef _aliasmate aliasmate
+`;
+}
+
+/**
+ * Generate fish completion script
+ */
+export function generateFishCompletion(): string {
+  const aliases = loadAliases();
+  const commandNames = Object.keys(aliases);
+  const commandCompletions = commandNames
+    .map(
+      (name) =>
+        `complete -c aliasmate -n "__fish_seen_subcommand_from run delete rm edit validate prev" -a "${name}"`
+    )
+    .join('\n');
+
+  return `# Fish completion for aliasmate
+# Save this to ~/.config/fish/completions/aliasmate.fish or add to your config:
+#   aliasmate completion fish > ~/.config/fish/completions/aliasmate.fish
+
+# Disable file completion by default
+complete -c aliasmate -f
+
+# Main commands
+complete -c aliasmate -n "__fish_use_subcommand" -a "prev" -d "Save previous command from history"
+complete -c aliasmate -n "__fish_use_subcommand" -a "run" -d "Run a saved command"
+complete -c aliasmate -n "__fish_use_subcommand" -a "save" -d "Interactively save a command"
+complete -c aliasmate -n "__fish_use_subcommand" -a "list" -d "List all saved commands"
+complete -c aliasmate -n "__fish_use_subcommand" -a "ls" -d "List all saved commands"
+complete -c aliasmate -n "__fish_use_subcommand" -a "search" -d "Search for commands"
+complete -c aliasmate -n "__fish_use_subcommand" -a "find" -d "Search for commands"
+complete -c aliasmate -n "__fish_use_subcommand" -a "recent" -d "Show recently executed commands"
+complete -c aliasmate -n "__fish_use_subcommand" -a "delete" -d "Delete a saved command"
+complete -c aliasmate -n "__fish_use_subcommand" -a "rm" -d "Delete a saved command"
+complete -c aliasmate -n "__fish_use_subcommand" -a "edit" -d "Edit a saved command"
+complete -c aliasmate -n "__fish_use_subcommand" -a "export" -d "Export commands to file"
+complete -c aliasmate -n "__fish_use_subcommand" -a "import" -d "Import commands from file"
+complete -c aliasmate -n "__fish_use_subcommand" -a "changelog" -d "View version changelog"
+complete -c aliasmate -n "__fish_use_subcommand" -a "alias" -d "Create, list, or remove aliases"
+complete -c aliasmate -n "__fish_use_subcommand" -a "validate" -d "Validate command(s)"
+complete -c aliasmate -n "__fish_use_subcommand" -a "config" -d "Show config file location"
+complete -c aliasmate -n "__fish_use_subcommand" -a "completion" -d "Generate shell completion script"
+
+# Saved command completions
+${commandCompletions}
+
+# run command options
+complete -c aliasmate -n "__fish_seen_subcommand_from run" -l dry-run -d "Preview without executing"
+complete -c aliasmate -n "__fish_seen_subcommand_from run" -l verbose -d "Show detailed information"
+
+# list/ls command options
+complete -c aliasmate -n "__fish_seen_subcommand_from list ls" -l format -d "Output format" -a "table json yaml compact"
+
+# export command options
+complete -c aliasmate -n "__fish_seen_subcommand_from export" -l format -d "Output format" -a "json yaml"
+
+# alias command options
+complete -c aliasmate -n "__fish_seen_subcommand_from alias" -l list -d "List all aliases"
+complete -c aliasmate -n "__fish_seen_subcommand_from alias" -l remove -d "Remove an alias"
+
+# recent command options
+complete -c aliasmate -n "__fish_seen_subcommand_from recent" -l limit -d "Maximum number to display"
+complete -c aliasmate -n "__fish_seen_subcommand_from recent" -l clear -d "Clear execution history"
+
+# save command options
+complete -c aliasmate -n "__fish_seen_subcommand_from save" -l no-validate -d "Skip validation checks"
+
+# validate command options
+complete -c aliasmate -n "__fish_seen_subcommand_from validate" -l all -d "Validate all saved commands"
+
+# completion command shell types
+complete -c aliasmate -n "__fish_seen_subcommand_from completion" -a "bash zsh fish" -d "Shell type"
+
+# File completions for import/export
+complete -c aliasmate -n "__fish_seen_subcommand_from import export" -F
+`;
+}
+
+/**
+ * Display completion script for specified shell
+ */
+export function completionCommand(shell?: string): void {
+  if (!shell) {
+    console.log(chalk.yellow('Usage: aliasmate completion <shell>'));
+    console.log(chalk.gray('\nAvailable shells:'));
+    console.log(chalk.gray('  bash  - Generate bash completion script'));
+    console.log(chalk.gray('  zsh   - Generate zsh completion script'));
+    console.log(chalk.gray('  fish  - Generate fish completion script'));
+    console.log(chalk.gray('\nExamples:'));
+    console.log(chalk.cyan('  # Bash'));
+    console.log(chalk.gray('  source <(aliasmate completion bash)'));
+    console.log(chalk.cyan('\n  # Zsh'));
+    console.log(chalk.gray('  source <(aliasmate completion zsh)'));
+    console.log(chalk.cyan('\n  # Fish'));
+    console.log(
+      chalk.gray('  aliasmate completion fish > ~/.config/fish/completions/aliasmate.fish')
+    );
+    return;
+  }
+
+  const normalizedShell = shell.toLowerCase();
+
+  switch (normalizedShell) {
+    case 'bash':
+      console.log(generateBashCompletion());
+      break;
+    case 'zsh':
+      console.log(generateZshCompletion());
+      break;
+    case 'fish':
+      console.log(generateFishCompletion());
+      break;
+    default:
+      console.error(chalk.red(`Error: Unsupported shell "${shell}"`));
+      console.log(chalk.yellow('Supported shells: bash, zsh, fish'));
+      process.exit(1);
+  }
+}

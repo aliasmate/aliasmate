@@ -4,9 +4,10 @@ import chalk from 'chalk';
 import { loadAliases } from '../storage';
 import { handleError, exitWithError, ExitCode } from '../utils/errors';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/constants';
+import { formatAsYAML } from '../utils/formatters';
 
 /**
- * Export all saved commands to a JSON file
+ * Export all saved commands to a file
  *
  * Creates a portable backup of all commands with metadata, suitable for:
  * - Sharing with team members
@@ -14,15 +15,19 @@ import { SUCCESS_MESSAGES, ERROR_MESSAGES, HELP_MESSAGES } from '../utils/consta
  * - Migrating between machines
  *
  * @param filePath - The path where the export file should be created
+ * @param format - Output format: 'json' (default) or 'yaml'
  *
  * @example
  * ```
- * // Export to a file
+ * // Export to JSON file
  * exportCommand('./my-commands.json');
  * // Output: ✓ Exported 15 command(s) to /path/to/my-commands.json
+ *
+ * // Export to YAML file
+ * exportCommand('./my-commands.yaml', 'yaml');
  * ```
  */
-export function exportCommand(filePath: string): void {
+export function exportCommand(filePath: string, format: 'json' | 'yaml' = 'json'): void {
   try {
     // Validate file path
     if (!filePath || !filePath.trim()) {
@@ -60,15 +65,23 @@ export function exportCommand(filePath: string): void {
       }
     }
 
-    // Export as JSON
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      version: '1.0',
-      aliases: aliases,
-    };
+    // Export in the specified format
+    let content: string;
+
+    if (format === 'yaml') {
+      content = formatAsYAML(aliases);
+    } else {
+      // JSON format with metadata
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        aliases: aliases,
+      };
+      content = JSON.stringify(exportData, null, 2);
+    }
 
     try {
-      fs.writeFileSync(resolvedPath, JSON.stringify(exportData, null, 2), 'utf8');
+      fs.writeFileSync(resolvedPath, content, 'utf8');
       console.log(chalk.green(`✓ ${SUCCESS_MESSAGES.exported(names.length, resolvedPath)}`));
     } catch (writeError) {
       exitWithError(
