@@ -13,7 +13,7 @@ Save shell commands with their working directories and re-run them from anywhere
 curl -fsSL https://raw.githubusercontent.com/akhshyganesh/aliasmate/main/install.sh | sh
 ```
 
-Downloads a self-contained binary for macOS (Intel/Apple Silicon) or Linux (x64/arm64). Windows users: grab `aliasmate-win-x64.exe` from the [latest release](https://github.com/akhshyganesh/aliasmate/releases/latest).
+Downloads a self-contained binary for macOS (Apple Silicon) or Linux (x64/arm64). Intel Macs: use the npm install below. Windows users: grab `aliasmate-win-x64.exe` from the [latest release](https://github.com/akhshyganesh/aliasmate/releases/latest).
 
 **Via npm** (requires Node.js 18+):
 

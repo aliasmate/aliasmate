@@ -26,6 +26,12 @@ case "$arch" in
     ;;
 esac
 
+if [ "$os" = "darwin" ] && [ "$arch" = "x64" ]; then
+  echo "Intel Macs are not supported by the standalone binary."
+  echo "Install via npm instead:  npm i -g aliasmate"
+  exit 1
+fi
+
 asset="aliasmate-$os-$arch"
 url="https://github.com/$REPO/releases/latest/download/$asset"
 
