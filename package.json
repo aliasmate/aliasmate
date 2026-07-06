@@ -1,10 +1,10 @@
 {
   "name": "aliasmate",
-  "version": "1.6.2",
+  "version": "2.0.0",
   "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
-  "main": "dist/cli.js",
+  "main": "dist/index.js",
   "bin": {
-    "aliasmate": "./dist/cli.js"
+    "aliasmate": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -37,7 +37,7 @@
   "author": "akhshyganesh",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -71,7 +71,6 @@
     "dist/",
     "README.md",
     "LICENSE",
-    "whats-new.json",
     "CHANGELOG.md"
   ]
 }
