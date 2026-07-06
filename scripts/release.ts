@@ -4,7 +4,7 @@
  * 
  * This script automates the release process:
  * - Prompts for new version number
- * - Updates package.json, package-lock.json, and constants.ts
+ * - Updates package.json and package-lock.json (version is read from package.json at runtime)
  * - Prompts for changelog entry
  * - Updates CHANGELOG.md with cumulative entries
  * - Updates what's new data file for onboarding
@@ -32,16 +32,10 @@ interface ChangelogEntry {
   };
 }
 
-interface WhatsNewData {
-  [version: string]: ChangelogEntry;
-}
-
 const ROOT_DIR = path.join(__dirname, '..');
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const PACKAGE_LOCK_PATH = path.join(ROOT_DIR, 'package-lock.json');
-const CONSTANTS_PATH = path.join(ROOT_DIR, 'src/utils/constants.ts');
 const CHANGELOG_PATH = path.join(ROOT_DIR, 'CHANGELOG.md');
-const WHATS_NEW_PATH = path.join(ROOT_DIR, 'whats-new.json');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -86,16 +80,6 @@ function updatePackageLock(newVersion: string): void {
   
   fs.writeFileSync(PACKAGE_LOCK_PATH, JSON.stringify(packageLock, null, 2) + '\n', 'utf8');
   console.log(`✓ Updated package-lock.json to v${newVersion}`);
-}
-
-function updateConstants(newVersion: string): void {
-  let content = fs.readFileSync(CONSTANTS_PATH, 'utf8');
-  content = content.replace(
-    /export const APP_VERSION = ['"][\d.]+['"];/,
-    `export const APP_VERSION = '${newVersion}';`
-  );
-  fs.writeFileSync(CONSTANTS_PATH, content, 'utf8');
-  console.log(`✓ Updated constants.ts to v${newVersion}`);
 }
 
 function getTodayDate(): string {
@@ -171,29 +155,10 @@ function updateChangelog(version: string, sections: ChangelogEntry['sections']):
   console.log(`✓ Updated CHANGELOG.md with v${version}`);
 }
 
-function updateWhatsNew(version: string, sections: ChangelogEntry['sections']): void {
-  let whatsNewData: WhatsNewData = {};
-  
-  // Load existing data if file exists
-  if (fs.existsSync(WHATS_NEW_PATH)) {
-    whatsNewData = JSON.parse(fs.readFileSync(WHATS_NEW_PATH, 'utf8'));
-  }
-  
-  // Add new entry
-  whatsNewData[version] = {
-    version,
-    date: getTodayDate(),
-    sections,
-  };
-  
-  fs.writeFileSync(WHATS_NEW_PATH, JSON.stringify(whatsNewData, null, 2) + '\n', 'utf8');
-  console.log(`✓ Updated whats-new.json with v${version}`);
-}
-
 function createGitCommit(version: string): void {
   try {
     // Stage all modified files
-    execSync('git add package.json package-lock.json src/utils/constants.ts CHANGELOG.md whats-new.json', {
+    execSync('git add package.json package-lock.json CHANGELOG.md', {
       cwd: ROOT_DIR,
       stdio: 'inherit',
     });
@@ -270,9 +235,7 @@ async function main(): Promise<void> {
   // Update all files
   updatePackageJson(newVersion);
   updatePackageLock(newVersion);
-  updateConstants(newVersion);
   updateChangelog(newVersion, sections);
-  updateWhatsNew(newVersion, sections);
   
   // Git operations
   const createCommit = await question('\nCreate git commit? (y/n): ');

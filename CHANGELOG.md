@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.0.0] - 2026-07-06
+
+Complete ground-up rewrite focused on performance, modularity, and day-to-day usability. Your saved commands, aliases, and run history carry over unchanged.
+
+### Added
+- **Interactive home screen** — running `aliasmate` with no arguments opens a menu of your commands sorted by usage, with run counts and instant run/edit/delete
+- **`stats` command** — most-used commands with usage bars, total runs, last-run times
+- **`ALIASMATE_HOME`** environment variable to relocate the config directory
+- **Corruption safety** — unreadable config files are backed up (never clobbered) before falling back
+- Duration reporting after every run; `delete -f` for scripted deletion
+
+### Changed
+- **~10x faster startup** — command handlers are lazy-loaded and config files are read once per process
+- **Layered architecture** — pure `core/` domain logic, `ui/` presentation, thin `cli/` adapters; core is fully unit-tested
+- Cleaner, more consistent output with usage badges in listings
+- Deleting a command now also removes its shortcut aliases
+- Non-interactive `import` skips conflicts instead of hanging on a prompt
+- Requires Node.js 18+
+
+### Removed
+- `changelog` command and `whats-new.json` (see this file instead)
+- Auto-created `llm` command
+
 ## [1.6.2] - 2026-01-24
 
 ### Added
