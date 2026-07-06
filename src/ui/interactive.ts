@@ -8,6 +8,7 @@ import {
   commandExists,
 } from '../core/commands';
 import { getUsageStats } from '../core/recent';
+import { exportToFile, importFromFile } from '../core/transfer';
 import { captureUserEnv, isSensitive, maskValue } from '../core/env';
 import { PathMode, SavedCommand } from '../core/types';
 import { truncate, prettyPath, timeAgo } from './format';
@@ -25,7 +26,7 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return q.length === 0;
 }
 
-type Mode = 'browse' | 'filter' | 'confirm-delete' | 'stats' | 'form';
+type Mode = 'browse' | 'filter' | 'confirm-delete' | 'stats' | 'form' | 'input';
 type EnvChoice = 'none' | 'keep' | 'capture';
 
 export interface FormSeed {
@@ -51,6 +52,46 @@ interface FormField {
   value: string;
   /** Caret position within value (0..length). */
   cursor: number;
+}
+
+interface TextState {
+  value: string;
+  cursor: number;
+}
+
+/** Shared caret editing for form fields and single-line inputs. */
+function editText(field: TextState, str: string | undefined, key: readline.Key): boolean {
+  if (key.name === 'left') {
+    field.cursor = Math.max(0, field.cursor - 1);
+  } else if (key.name === 'right') {
+    field.cursor = Math.min(field.value.length, field.cursor + 1);
+  } else if (key.name === 'home' || (key.ctrl && key.name === 'a')) {
+    field.cursor = 0;
+  } else if (key.name === 'end' || (key.ctrl && key.name === 'e')) {
+    field.cursor = field.value.length;
+  } else if (key.ctrl && key.name === 'u') {
+    field.value = field.value.slice(field.cursor);
+    field.cursor = 0;
+  } else if (key.name === 'backspace') {
+    if (field.cursor > 0) {
+      field.value = field.value.slice(0, field.cursor - 1) + field.value.slice(field.cursor);
+      field.cursor -= 1;
+    }
+  } else if (key.name === 'delete') {
+    field.value = field.value.slice(0, field.cursor) + field.value.slice(field.cursor + 1);
+  } else if (str && str.length === 1 && !key.ctrl && !key.meta && str >= ' ') {
+    field.value = field.value.slice(0, field.cursor) + str + field.value.slice(field.cursor);
+    field.cursor += 1;
+  } else {
+    return false;
+  }
+  return true;
+}
+
+interface InputState extends TextState {
+  kind: 'export' | 'import';
+  label: string;
+  error: string;
 }
 
 interface FormState {
@@ -90,6 +131,7 @@ export class Tui {
   private selected = 0;
   private rows: Row[] = loadRows();
   private form: FormState | null = null;
+  private input: InputState | null = null;
   private message = '';
   private resolve: ((action: TuiAction) => void) | null = null;
 
@@ -265,6 +307,21 @@ export class Tui {
     return lines;
   }
 
+  private inputPane(): string[] {
+    const input = this.input!;
+    const value = `${input.value.slice(0, input.cursor)}${theme.accent('▏')}${input.value.slice(input.cursor)}`;
+    const lines = [` ${theme.accent('› ')}${theme.faint(input.label.padEnd(11))}${value}`];
+    if (input.kind === 'export') {
+      lines.push('');
+      lines.push(theme.faint('   includes real secret env values — keep the file safe'));
+    }
+    if (input.error) {
+      lines.push('');
+      lines.push(` ${theme.error(input.error)}`);
+    }
+    return lines;
+  }
+
   private footer(): string {
     const key = (k: string, label: string) => `${theme.accent(k)} ${theme.faint(label)}`;
     const sep = theme.faint('  ');
@@ -277,6 +334,8 @@ export class Tui {
         return ` ${theme.accent('/')} ${this.filter}${theme.accent('▏')}  ${theme.faint('esc clear · enter run · ↑↓ move')}`;
       case 'form':
         return ` ${[key('↑↓/tab', 'field'), key('←→', 'cursor'), key('enter', 'next/save'), key('esc', 'cancel')].join(sep)}`;
+      case 'input':
+        return ` ${[key('enter', this.input?.kind === 'export' ? 'export' : 'import'), key('esc', 'cancel')].join(sep)}`;
       case 'stats':
         return ` ${theme.faint('any key to go back')}`;
       default:
@@ -288,6 +347,8 @@ export class Tui {
           key('e', 'edit'),
           key('d', 'delete'),
           key('s', 'stats'),
+          key('x', 'export'),
+          key('i', 'import'),
           key('q', 'quit'),
         ].join(sep)}`;
     }
@@ -301,12 +362,18 @@ export class Tui {
           : '· new command'
         : this.mode === 'stats'
           ? '· stats'
-          : '';
+          : this.mode === 'input'
+            ? this.input?.kind === 'export'
+              ? '· export backup'
+              : '· import'
+            : '';
     const out: string[] = [...this.header(subtitle)];
     if (this.mode === 'stats') {
       out.push(...this.statsPane());
     } else if (this.mode === 'form') {
       out.push(...this.formPane());
+    } else if (this.mode === 'input') {
+      out.push(...this.inputPane());
     } else {
       const detail = this.detailPane();
       const listLines = Math.max(3, this.height - out.length - detail.length - 4);
@@ -335,6 +402,56 @@ export class Tui {
     const count = this.visibleRows().length;
     if (count === 0) return;
     this.selected = (this.selected + delta + count) % count;
+  }
+
+  private openInput(kind: 'export' | 'import'): void {
+    const today = new Date().toISOString().slice(0, 10);
+    const value = kind === 'export' ? `~/aliasmate-backup-${today}.json` : '~/';
+    this.input = { kind, label: 'file', value, cursor: value.length, error: '' };
+    this.mode = 'input';
+  }
+
+  private handleInputKey(str: string | undefined, key: readline.Key): void {
+    const input = this.input!;
+    if (key.name === 'escape') {
+      this.input = null;
+      this.mode = 'browse';
+      this.message = theme.faint('cancelled');
+      return this.render();
+    }
+    if (key.name === 'return') return this.submitInput();
+    if (editText(input, str, key)) input.error = '';
+    this.render();
+  }
+
+  private submitInput(): void {
+    const input = this.input!;
+    const file = input.value.trim();
+    if (!file) {
+      input.error = 'File path cannot be empty';
+      return this.render();
+    }
+    try {
+      if (input.kind === 'export') {
+        const count = exportToFile(file, { full: true });
+        this.message = `${icons.ok} ${theme.dim(`exported ${count} command${count === 1 ? '' : 's'} to ${file}`)}`;
+      } else {
+        const result = importFromFile(file);
+        this.refresh();
+        const extras = [
+          result.skipped.length > 0 ? `${result.skipped.length} skipped (already exist)` : '',
+          result.invalid.length > 0 ? `${result.invalid.length} invalid` : '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
+        this.message = `${icons.ok} ${theme.dim(`imported ${result.imported}${extras ? ` · ${extras}` : ''}`)}`;
+      }
+      this.input = null;
+      this.mode = 'browse';
+    } catch (error) {
+      input.error = (error as Error).message;
+    }
+    this.render();
   }
 
   private submitForm(): void {
@@ -415,29 +532,7 @@ export class Tui {
       return this.render();
     }
     if (isTextField) {
-      const field = form.fields[form.active];
-      if (key.name === 'left') {
-        field.cursor = Math.max(0, field.cursor - 1);
-      } else if (key.name === 'right') {
-        field.cursor = Math.min(field.value.length, field.cursor + 1);
-      } else if (key.name === 'home' || (key.ctrl && key.name === 'a')) {
-        field.cursor = 0;
-      } else if (key.name === 'end' || (key.ctrl && key.name === 'e')) {
-        field.cursor = field.value.length;
-      } else if (key.ctrl && key.name === 'u') {
-        field.value = field.value.slice(field.cursor);
-        field.cursor = 0;
-      } else if (key.name === 'backspace') {
-        if (field.cursor > 0) {
-          field.value = field.value.slice(0, field.cursor - 1) + field.value.slice(field.cursor);
-          field.cursor -= 1;
-        }
-      } else if (key.name === 'delete') {
-        field.value = field.value.slice(0, field.cursor) + field.value.slice(field.cursor + 1);
-      } else if (str && str.length === 1 && !key.ctrl && !key.meta && str >= ' ') {
-        field.value = field.value.slice(0, field.cursor) + str + field.value.slice(field.cursor);
-        field.cursor += 1;
-      }
+      editText(form.fields[form.active], str, key);
       form.error = '';
       return this.render();
     }
@@ -458,6 +553,7 @@ export class Tui {
     if (key.ctrl && key.name === 'c') return this.finish(null);
 
     if (this.mode === 'form') return this.handleFormKey(str, key);
+    if (this.mode === 'input') return this.handleInputKey(str, key);
 
     if (this.mode === 'stats') {
       this.mode = 'browse';
@@ -531,6 +627,8 @@ export class Tui {
           }
         } else if (str === 'd' && this.visibleRows().length > 0) this.mode = 'confirm-delete';
         else if (str === 's') this.mode = 'stats';
+        else if (str === 'x') this.openInput('export');
+        else if (str === 'i') this.openInput('import');
     }
     this.render();
   }

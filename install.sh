@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 # AliasMate installer — no Node.js or npm required.
-#   curl -fsSL https://raw.githubusercontent.com/aliasmate/aliasmate/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/akhshyganesh/aliasmate/main/install.sh | sh
 set -eu
 
-REPO="aliasmate/aliasmate"
+REPO="akhshyganesh/aliasmate"
 
 os="$(uname -s)"
 arch="$(uname -m)"

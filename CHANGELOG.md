@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.3.0] - 2026-07-06
+
+### Added
+- **In-TUI export/import**: `x` exports a full backup (real secret values) to a prefilled `~/aliasmate-backup-<date>.json` path, `i` imports from a JSON file — with inline error handling, conflict skipping, and automatic pre-import backup
+- CLI import now asks once about conflicts instead of per command
+
+### Changed
+- Project moved to **github.com/akhshyganesh/aliasmate** (old URLs redirect); installer, docs, and package metadata updated
+- Export/import logic extracted to `core/transfer` and shared by CLI and TUI; `~` is expanded in file paths
+
 ## [2.2.0] - 2026-07-06
 
 ### Added
@@ -415,6 +425,6 @@ Complete ground-up rewrite focused on performance, modularity, and day-to-day us
 - Input validation and error handling
 - Beautiful CLI output with chalk
 
-[1.2.0]: https://github.com/aliasmate/aliasmate/releases/tag/v1.2.0
-[1.1.0]: https://github.com/aliasmate/aliasmate/releases/tag/v1.1.0
-[1.0.0]: https://github.com/aliasmate/aliasmate/releases/tag/v1.0.0
+[1.2.0]: https://github.com/akhshyganesh/aliasmate/releases/tag/v1.2.0
+[1.1.0]: https://github.com/akhshyganesh/aliasmate/releases/tag/v1.1.0
+[1.0.0]: https://github.com/akhshyganesh/aliasmate/releases/tag/v1.0.0

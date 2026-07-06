@@ -10,10 +10,10 @@ Save shell commands with their working directories and re-run them from anywhere
 **Standalone (no Node.js required):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aliasmate/aliasmate/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/akhshyganesh/aliasmate/main/install.sh | sh
 ```
 
-Downloads a self-contained binary for macOS (Intel/Apple Silicon) or Linux (x64/arm64). Windows users: grab `aliasmate-win-x64.exe` from the [latest release](https://github.com/aliasmate/aliasmate/releases/latest).
+Downloads a self-contained binary for macOS (Intel/Apple Silicon) or Linux (x64/arm64). Windows users: grab `aliasmate-win-x64.exe` from the [latest release](https://github.com/akhshyganesh/aliasmate/releases/latest).
 
 **Via npm** (requires Node.js 18+):
 
@@ -47,6 +47,8 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `d` | delete (with confirm) |
 | `←→` | move the caret while editing form fields |
 | `s` | usage stats |
+| `x` | export a full backup (JSON) |
+| `i` | import commands from a JSON file |
 | `q` / `esc` | quit |
 
 ## Commands

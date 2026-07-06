@@ -257,6 +257,50 @@ describe('Tui form', () => {
   });
 });
 
+describe('Tui export/import', () => {
+  it('exports a full backup and imports it back in-TUI', () => {
+    saveCommand({
+      name: 'backmeup',
+      command: 'echo hi',
+      directory: '/tmp',
+      env: { API_KEY: 'realsecret99' },
+    });
+    const file = `${dir}/tui-backup.json`;
+    const tui = makeTui();
+    tui.refresh();
+    void tui.waitForAction();
+
+    // export: x → clear prefilled path (ctrl+u) → type path → enter
+    press(tui, ['x', { name: 'u', ctrl: true }]);
+    type(tui, file);
+    press(tui, [enter]);
+
+    // wipe and re-import
+    press(tui, ['d', 'y']);
+    expect(getCommand('backmeup')).toBeUndefined();
+    press(tui, ['i', { name: 'u', ctrl: true }]);
+    type(tui, file);
+    press(tui, [enter]);
+
+    const restored = getCommand('backmeup')!;
+    expect(restored.command).toBe('echo hi');
+    expect(restored.env).toEqual({ API_KEY: 'realsecret99' });
+  });
+
+  it('shows an error for a missing import file without leaving input mode', () => {
+    saveCommand({ name: 'x', command: 'echo', directory: '/tmp' });
+    const tui = makeTui();
+    tui.refresh();
+    void tui.waitForAction();
+    press(tui, ['i', { name: 'u', ctrl: true }]);
+    type(tui, '/definitely/not/here.json');
+    press(tui, [enter]);
+    // still in input mode: esc gets us back to browse, q quits cleanly
+    press(tui, [esc, 'q']);
+    expect(getCommand('x')).toBeDefined();
+  });
+});
+
 describe('Tui stats', () => {
   it('enters and leaves the stats view', async () => {
     saveCommand({ name: 'a', command: 'echo', directory: '/tmp' });
