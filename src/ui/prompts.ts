@@ -1,6 +1,18 @@
 import inquirer from 'inquirer';
 import { PathMode } from '../core/types';
 import { captureUserEnv, isSensitive, maskValue } from '../core/env';
+import { RESERVED_NAMES } from '../core/commands';
+
+/** Prompt-time validation so bad names are rejected where the user can see it. */
+export function validateName(value: string): true | string {
+  const name = value.trim();
+  if (!name) return 'Name cannot be empty';
+  if (/\s/.test(name)) return 'Name cannot contain spaces — try dashes: build-prod';
+  if (!/^[\w.:-]+$/.test(name)) return 'Only letters, digits, and - _ . : are allowed';
+  if (name.startsWith('@')) return 'Names starting with @ are reserved for recent commands';
+  if (RESERVED_NAMES.has(name)) return `"${name}" is a reserved word — pick another name`;
+  return true;
+}
 
 export interface CommandDetails {
   name: string;
@@ -28,7 +40,7 @@ export async function promptCommandDetails(
       message: 'Name:',
       default: defaults.name,
       when: defaults.name === undefined,
-      validate: (v: string) => (v.trim() ? true : 'Name cannot be empty'),
+      validate: validateName,
     },
     {
       type: 'input',

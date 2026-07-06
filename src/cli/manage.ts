@@ -13,8 +13,12 @@ import { validateSavedCommand } from '../core/validate';
 import { render, timeAgo, truncate } from '../ui/format';
 import { theme, icons, ok, fail, warn } from '../ui/theme';
 
-function runCountMap(): Map<string, number> {
-  return new Map(getUsageStats().map((s) => [s.name, s.runCount]));
+function usageMaps(): { runCounts: Map<string, number>; lastRuns: Map<string, string> } {
+  const stats = getUsageStats();
+  return {
+    runCounts: new Map(stats.map((s) => [s.name, s.runCount])),
+    lastRuns: new Map(stats.map((s) => [s.name, s.lastRunAt])),
+  };
 }
 
 export function listHandler(format: ListFormat): void {
@@ -27,8 +31,15 @@ export function listHandler(format: ListFormat): void {
     );
     return;
   }
-  if (format === 'table') console.log(theme.heading(`\nSaved commands (${count}):\n`));
-  console.log(render(commands, format, { runCounts: runCountMap() }));
+  if (format === 'table') {
+    console.log(
+      `\n${theme.brand('⚡ AliasMate')} ${theme.dim(`· ${count} command${count > 1 ? 's' : ''}`)}\n`
+    );
+  }
+  console.log(render(commands, format, usageMaps()));
+  if (format === 'table') {
+    console.log(theme.dim('\n  ⁺N = saved env vars · run with: aliasmate run <name>'));
+  }
 }
 
 export function searchHandler(query: string): void {
@@ -38,8 +49,10 @@ export function searchHandler(query: string): void {
     console.log(theme.dim(`No commands match "${query}".`));
     return;
   }
-  console.log(theme.heading(`\n${count} match${count > 1 ? 'es' : ''} for "${query}":\n`));
-  console.log(render(matches, 'table', { runCounts: runCountMap() }));
+  console.log(
+    `\n${theme.brand('⚡')} ${theme.heading(`${count} match${count > 1 ? 'es' : ''} for "${query}"`)}\n`
+  );
+  console.log(render(matches, 'table', usageMaps()));
 }
 
 export async function deleteHandler(name: string, options: { force?: boolean }): Promise<void> {

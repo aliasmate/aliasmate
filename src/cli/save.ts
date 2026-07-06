@@ -35,6 +35,13 @@ export async function saveHandler(options: { validate?: boolean }): Promise<void
 
 /** `aliasmate prev <name>` — save the last command from shell history. */
 export async function prevHandler(name: string, options: { validate?: boolean }): Promise<void> {
+  const { validateName } = await import('../ui/prompts');
+  const nameCheck = validateName(name);
+  if (nameCheck !== true) {
+    fail(nameCheck);
+    process.exitCode = 1;
+    return;
+  }
   const lastCommand = getLastCommand();
   if (!lastCommand) {
     fail('Could not read the previous command from shell history.');

@@ -1,6 +1,8 @@
+import * as os from 'os';
 import { CommandMap, ListFormat, SavedCommand } from '../core/types';
 import { maskSensitive } from '../core/env';
-import { theme, icons } from './theme';
+import { renderTable } from './table';
+import { theme } from './theme';
 
 /** "2 minutes ago" style relative time. */
 export function timeAgo(iso: string, now: Date = new Date()): string {
@@ -65,34 +67,49 @@ export function toCompact(commands: CommandMap): string {
 
 export interface TableOptions {
   runCounts?: Map<string, number>;
+  lastRuns?: Map<string, string>;
 }
 
-/** Rich human-readable listing with usage badges and env indicators. */
+/** Shorten a path for display: home becomes ~. */
+export function prettyPath(dir: string): string {
+  const home = os.homedir();
+  return dir.startsWith(home) ? `~${dir.slice(home.length)}` : dir;
+}
+
+/** Boxed, width-aware table sorted by usage. */
 export function toTable(commands: CommandMap, options: TableOptions = {}): string {
   const names = Object.keys(commands).sort((a, b) => {
     const runsA = options.runCounts?.get(a) ?? 0;
     const runsB = options.runCounts?.get(b) ?? 0;
     return runsB - runsA || a.localeCompare(b);
   });
-  const lines: string[] = [];
-  for (const name of names) {
+
+  const rows = names.map((name) => {
     const cmd = commands[name];
     const runs = options.runCounts?.get(name) ?? 0;
-    const badges = [
-      runs > 0 ? theme.dim(`${icons.fire} ${runs} run${runs > 1 ? 's' : ''}`) : '',
-      cmd.env && Object.keys(cmd.env).length > 0
-        ? `${icons.env} ${theme.dim(`${Object.keys(cmd.env).length} env`)}`
-        : '',
-      (cmd.pathMode ?? 'saved') === 'current' ? theme.dim('[current dir]') : '',
-    ]
-      .filter(Boolean)
-      .join('  ');
-    lines.push(`  ${theme.name(name)}${badges ? `  ${badges}` : ''}`);
-    lines.push(`    ${theme.command(truncate(cmd.command, 100))}`);
-    lines.push(`    ${icons.folder} ${theme.dim(cmd.directory)}`);
-    lines.push('');
-  }
-  return lines.join('\n').trimEnd();
+    const lastRun = options.lastRuns?.get(name);
+    const envCount = cmd.env ? Object.keys(cmd.env).length : 0;
+    const where =
+      (cmd.pathMode ?? 'saved') === 'current' ? '(current dir)' : prettyPath(cmd.directory);
+    return [
+      name + (envCount > 0 ? ` ⁺${envCount}` : ''),
+      cmd.command,
+      where,
+      runs > 0 ? String(runs) : '·',
+      lastRun ? timeAgo(lastRun) : '—',
+    ];
+  });
+
+  return renderTable(
+    [
+      { header: 'Name', min: 12, flex: 1, style: (t) => theme.name(t) },
+      { header: 'Command', min: 24, flex: 4 },
+      { header: 'Where', min: 14, flex: 2, style: (t) => theme.dim(t) },
+      { header: 'Runs', min: 4, flex: 0, align: 'right', style: (t) => theme.accent(t) },
+      { header: 'Last run', min: 14, flex: 0, style: (t) => theme.dim(t) },
+    ],
+    rows
+  );
 }
 
 export function render(
