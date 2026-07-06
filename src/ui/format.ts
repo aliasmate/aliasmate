@@ -68,6 +68,8 @@ export function toCompact(commands: CommandMap): string {
 export interface TableOptions {
   runCounts?: Map<string, number>;
   lastRuns?: Map<string, string>;
+  /** Names sourced from the project file (marked in the table). */
+  projectNames?: Set<string>;
 }
 
 /** Shorten a path for display: home becomes ~. */
@@ -92,8 +94,11 @@ export function toTable(commands: CommandMap, options: TableOptions = {}): strin
     const where =
       (cmd.pathMode ?? 'saved') === 'current' ? '(current dir)' : prettyPath(cmd.directory);
     return [
-      name + (envCount > 0 ? ` ⁺${envCount}` : ''),
-      cmd.command,
+      name +
+        (options.projectNames?.has(name) ? ' ⌂' : '') +
+        (envCount > 0 ? ` ⁺${envCount}` : '') +
+        (cmd.steps?.length ? ' ⛓' : ''),
+      cmd.steps?.length ? cmd.steps.join(' → ') : cmd.command,
       where,
       runs > 0 ? String(runs) : '·',
       lastRun ? timeAgo(lastRun) : '—',

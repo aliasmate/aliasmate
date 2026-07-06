@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.4.0] - 2026-07-06
+
+### Added
+- **Shell hook** (`aliasmate init install`): keeps `ALIASMATE_LAST_CMD` fresh on every prompt for instant, reliable `prev`, and logs commands to power suggestions (zsh/bash/fish)
+- **Suggestions**: the TUI notices commands you've run 3+ times without saving and offers to save them with `a`
+- **Run arguments**: `aliasmate run build -- --watch` appends args; `{{placeholder}}` variables in commands are prompted at run time
+- **Chains**: `aliasmate chain ship build test deploy` — runs saved commands sequentially in their own directories, stopping on failure (⛓ in listings)
+- **Project commands**: `.aliasmate.json` (created via `aliasmate project init/add/remove`) merges team-shared commands into everyone's list, marked ⌂; relative paths resolve against the repo root
+- **Sync**: `aliasmate sync push/pull/set` via a private GitHub gist (uses gh CLI)
+- **Undo**: `aliasmate undo` / `u` in the TUI reverts the last save, edit, rename, delete, or import (10-deep history)
+- **Copy**: `aliasmate copy <name>` / `c` in the TUI copies the command to the clipboard
+- **Notes & tags**: a note field in the TUI form, `aliasmate tag <name> <tags...>`, both searchable and shown in the detail pane
+- **Run outcomes**: exit codes and durations recorded per run; failed commands show ✗ in the TUI list and detail pane
+- First run seeds two deletable example commands so the TUI isn't empty
+
 ## [2.3.0] - 2026-07-06
 
 ### Added

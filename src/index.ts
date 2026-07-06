@@ -30,11 +30,63 @@ program
 
 program
   .command('run <name> [path]')
-  .description('Run a saved command (name, alias, or @N recent reference)')
+  .description('Run a saved command (name, alias, or @N; append args after --)')
   .option('--dry-run', 'Preview what would execute without running it')
   .option('--verbose', 'Show full details in dry-run output')
   .action((name: string, pathOverride: string | undefined, options) =>
-    wrap(async () => (await import('./cli/run')).runHandler(name, pathOverride, options))
+    wrap(async () =>
+      (await import('./cli/run')).runHandler(name, pathOverride, {
+        ...options,
+        extraArgs: passthroughArgs,
+      })
+    )
+  );
+
+program
+  .command('copy <name>')
+  .description('Copy a saved command to the clipboard')
+  .action((name: string) => wrap(async () => (await import('./cli/extras')).copyHandler(name)));
+
+program
+  .command('undo')
+  .description('Revert the last save/edit/rename/delete/import')
+  .action(() => wrap(async () => (await import('./cli/extras')).undoHandler()));
+
+program
+  .command('chain <name> <steps...>')
+  .description('Save a chain that runs saved commands in sequence (stops on failure)')
+  .action((name: string, steps: string[]) =>
+    wrap(async () => (await import('./cli/extras')).chainHandler(name, steps))
+  );
+
+program
+  .command('tag <name> [tags...]')
+  .description('Set tags on a command (no tags: show, "-" clears)')
+  .action((name: string, tags: string[]) =>
+    wrap(async () => (await import('./cli/extras')).tagHandler(name, tags))
+  );
+
+program
+  .command('init [shell]')
+  .description('Print the shell hook for reliable capture (bash, zsh, fish) — or "install" it')
+  .action((shell: string | undefined) =>
+    wrap(async () => (await import('./cli/init')).initHandler(shell))
+  );
+
+program
+  .command('project [action] [name]')
+  .description('Project commands in .aliasmate.json: status | init | add <name> | remove <name>')
+  .action((action: string | undefined, name: string | undefined) =>
+    wrap(async () => (await import('./cli/project')).projectHandler(action, name))
+  );
+
+program
+  .command('sync <direction> [id]')
+  .description(
+    'Sync commands via a private GitHub gist: push | pull | set <gist-id> (needs gh CLI)'
+  )
+  .action((direction: string, id: string | undefined) =>
+    wrap(async () => (await import('./cli/sync')).syncHandler(direction, id))
   );
 
 program
@@ -158,7 +210,12 @@ program
 
 program.showSuggestionAfterError(true);
 
-const args = process.argv.slice(2);
+// Everything after a bare -- is passed through to `run` verbatim.
+const ddIndex = process.argv.indexOf('--');
+const passthroughArgs = ddIndex >= 0 ? process.argv.slice(ddIndex + 1) : [];
+const argv = ddIndex >= 0 ? process.argv.slice(0, ddIndex) : process.argv;
+
+const args = argv.slice(2);
 if (args.length === 0) {
   // Zero-args: interactive home screen (with first-run welcome).
   wrap(async () => {
@@ -171,5 +228,5 @@ if (args.length === 0) {
     }
   });
 } else {
-  program.parse(process.argv);
+  program.parse(argv);
 }

@@ -5,6 +5,7 @@ import { CommandMap, SavedCommand } from './types';
 import { listCommands, saveCommand, commandExists } from './commands';
 import { maskSensitive } from './env';
 import { getConfigDir } from './store';
+import { pushUndo } from './undo';
 
 /** Expand a leading ~ and resolve to an absolute path. */
 export function expandPath(file: string): string {
@@ -60,6 +61,7 @@ export function importFromFile(
   }
 
   const result: ImportResult = { imported: 0, skipped: [], invalid: [] };
+  pushUndo(`import ${path.basename(resolved)}`);
 
   const existing = listCommands();
   if (Object.keys(existing).length > 0) {
@@ -76,13 +78,19 @@ export function importFromFile(
       result.skipped.push(name);
       continue;
     }
-    saveCommand({
-      name,
-      command: entry.command,
-      directory: entry.directory,
-      pathMode: entry.pathMode,
-      env: entry.env,
-    });
+    saveCommand(
+      {
+        name,
+        command: entry.command,
+        directory: entry.directory,
+        pathMode: entry.pathMode,
+        env: entry.env,
+        description: entry.description,
+        tags: entry.tags,
+        steps: entry.steps,
+      },
+      { undo: false }
+    );
     result.imported++;
   }
   return result;

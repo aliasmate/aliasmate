@@ -8,10 +8,22 @@ export function getExecutionHistory(): ExecutionEntry[] {
   return getMetadata<ExecutionEntry[]>(HISTORY_KEY) ?? [];
 }
 
-export function recordExecution(commandName: string): void {
+export function recordExecution(
+  commandName: string,
+  outcome?: { exitCode: number; durationMs: number }
+): void {
   const history = getExecutionHistory();
-  history.unshift({ commandName, executedAt: new Date().toISOString() });
+  history.unshift({
+    commandName,
+    executedAt: new Date().toISOString(),
+    ...(outcome ? { exitCode: outcome.exitCode, durationMs: outcome.durationMs } : {}),
+  });
   setMetadata(HISTORY_KEY, history.slice(0, MAX_ENTRIES));
+}
+
+/** Most recent execution entry for a command, if any. */
+export function getLastExecution(commandName: string): ExecutionEntry | undefined {
+  return getExecutionHistory().find((e) => e.commandName === commandName);
 }
 
 export function clearExecutionHistory(): void {

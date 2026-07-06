@@ -5,7 +5,7 @@ import { listCommands, listAliases } from '../core/commands';
 import { ok, fail, theme } from '../ui/theme';
 
 const SUBCOMMANDS =
-  'run save prev list search edit rename delete export import alias recent validate stats completion config help';
+  'run save prev list search edit rename delete export import alias recent validate stats copy undo chain tag init project sync completion config help';
 
 function savedNames(): string {
   return [...Object.keys(listCommands()), ...Object.keys(listAliases())].join(' ');
@@ -19,7 +19,7 @@ _aliasmate_complete() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
   if [ "$COMP_CWORD" -eq 1 ]; then
     COMPREPLY=( $(compgen -W "${SUBCOMMANDS}" -- "$cur") )
-  elif [ "$prev" = "run" ] || [ "$prev" = "edit" ] || [ "$prev" = "rename" ] || [ "$prev" = "mv" ] || [ "$prev" = "delete" ] || [ "$prev" = "rm" ] || [ "$prev" = "validate" ]; then
+  elif [ "$prev" = "run" ] || [ "$prev" = "edit" ] || [ "$prev" = "rename" ] || [ "$prev" = "mv" ] || [ "$prev" = "delete" ] || [ "$prev" = "rm" ] || [ "$prev" = "validate" ] || [ "$prev" = "copy" ] || [ "$prev" = "tag" ]; then
     COMPREPLY=( $(compgen -W "$(aliasmate completion --names 2>/dev/null)" -- "$cur") )
   fi
 }
@@ -34,7 +34,7 @@ _aliasmate() {
   subcmds=(${SUBCOMMANDS})
   if (( CURRENT == 2 )); then
     _describe 'command' subcmds
-  elif [[ \${words[2]} == (run|edit|rename|mv|delete|rm|validate) ]]; then
+  elif [[ \${words[2]} == (run|edit|rename|mv|delete|rm|validate|copy|tag) ]]; then
     local -a names
     names=($(aliasmate completion --names 2>/dev/null))
     _describe 'saved command' names
@@ -48,7 +48,7 @@ function fishScript(): string {
   return `# aliasmate fish completion
 complete -c aliasmate -f
 complete -c aliasmate -n "__fish_use_subcommand" -a "${SUBCOMMANDS}"
-complete -c aliasmate -n "__fish_seen_subcommand_from run edit rename mv delete rm validate" -a "(aliasmate completion --names 2>/dev/null)"
+complete -c aliasmate -n "__fish_seen_subcommand_from run edit rename mv delete rm validate copy tag" -a "(aliasmate completion --names 2>/dev/null)"
 `;
 }
 

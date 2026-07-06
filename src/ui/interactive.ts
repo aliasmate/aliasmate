@@ -1,13 +1,16 @@
 import * as readline from 'readline';
 import {
-  listCommands,
   saveCommand,
   deleteCommand,
   renameCommand,
   validateCommandName,
   commandExists,
 } from '../core/commands';
-import { getUsageStats } from '../core/recent';
+import { getUsageStats, getLastExecution } from '../core/recent';
+import { listEffectiveCommands } from '../core/project';
+import { getSuggestion, clearFromRawLog, Suggestion } from '../core/suggest';
+import { copyToClipboard } from '../core/clipboard';
+import { undoLast } from '../core/undo';
 import { exportToFile, importFromFile } from '../core/transfer';
 import { captureUserEnv, isSensitive, maskValue } from '../core/env';
 import { PathMode, SavedCommand } from '../core/types';
@@ -33,10 +36,13 @@ export interface FormSeed {
   name?: string;
   command?: string;
   directory?: string;
+  description?: string;
   pathMode?: PathMode;
-  /** When editing, the original name (kept fixed) and its saved env. */
+  /** When editing, the original name and its saved env/tags/steps. */
   editing?: string;
   env?: Record<string, string>;
+  tags?: string[];
+  steps?: string[];
 }
 
 interface Row {
@@ -44,10 +50,12 @@ interface Row {
   cmd: SavedCommand;
   runs: number;
   lastRun?: string;
+  project: boolean;
+  lastFailed: boolean;
 }
 
 interface FormField {
-  key: 'name' | 'command' | 'directory';
+  key: 'name' | 'command' | 'directory' | 'description';
   label: string;
   value: string;
   /** Caret position within value (0..length). */
@@ -99,8 +107,10 @@ interface FormState {
   pathMode: PathMode;
   envChoice: EnvChoice;
   keepEnv?: Record<string, string>;
+  keepTags?: string[];
+  keepSteps?: string[];
   editing?: string;
-  active: number; // 0..2 text fields, 3 = pathMode, 4 = env
+  active: number; // 0..3 text fields, 4 = pathMode, 5 = env
   error: string;
 }
 
@@ -111,18 +121,24 @@ const ALT_SCREEN_OFF = '\x1b[?1049l\x1b[?25h';
 const CLEAR = '\x1b[2J\x1b[H';
 
 function loadRows(): Row[] {
-  const commands = listCommands();
+  const effective = listEffectiveCommands();
+  const commands = effective.commands;
   const stats = getUsageStats();
   const counts = new Map(stats.map((s) => [s.name, s.runCount]));
   const lastRuns = new Map(stats.map((s) => [s.name, s.lastRunAt]));
   return Object.keys(commands)
     .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b))
-    .map((name) => ({
-      name,
-      cmd: commands[name],
-      runs: counts.get(name) ?? 0,
-      lastRun: lastRuns.get(name),
-    }));
+    .map((name) => {
+      const last = getLastExecution(name);
+      return {
+        name,
+        cmd: commands[name],
+        runs: counts.get(name) ?? 0,
+        lastRun: lastRuns.get(name),
+        project: effective.projectNames.has(name),
+        lastFailed: last?.exitCode !== undefined && last.exitCode !== 0,
+      };
+    });
 }
 
 export class Tui {
@@ -132,6 +148,7 @@ export class Tui {
   private rows: Row[] = loadRows();
   private form: FormState | null = null;
   private input: InputState | null = null;
+  private suggestion: Suggestion | null = null;
   private message = '';
   private resolve: ((action: TuiAction) => void) | null = null;
 
@@ -157,6 +174,11 @@ export class Tui {
   refresh(): void {
     this.rows = loadRows();
     this.selected = Math.min(this.selected, Math.max(0, this.visibleRows().length - 1));
+    try {
+      this.suggestion = getSuggestion();
+    } catch {
+      this.suggestion = null;
+    }
   }
 
   openForm(seed: FormSeed = {}): void {
@@ -166,11 +188,14 @@ export class Tui {
           { key: 'name', label: 'name', value: seed.name ?? '' },
           { key: 'command', label: 'command', value: seed.command ?? '' },
           { key: 'directory', label: 'directory', value: seed.directory ?? process.cwd() },
+          { key: 'description', label: 'note', value: seed.description ?? '' },
         ] as Omit<FormField, 'cursor'>[]
       ).map((f) => ({ ...f, cursor: f.value.length })),
       pathMode: seed.pathMode ?? 'saved',
       envChoice: seed.env && Object.keys(seed.env).length > 0 ? 'keep' : 'none',
       keepEnv: seed.env,
+      keepTags: seed.tags,
+      keepSteps: seed.steps,
       editing: seed.editing,
       active: seed.editing || seed.name ? 1 : 0,
       error: '',
@@ -215,9 +240,16 @@ export class Tui {
       const name = active
         ? theme.selected(row.name.padEnd(nameW))
         : theme.name(row.name.padEnd(nameW));
-      const cmd = truncate(row.cmd.command, cmdW).padEnd(cmdW + 1);
-      const runs = row.runs > 0 ? theme.dim(`${icons.fire} ${row.runs}`) : theme.faint('·');
-      return ` ${marker} ${name} ${active ? cmd : theme.dim(cmd)} ${runs}`;
+      const cmdText = row.cmd.steps?.length ? `⛓ ${row.cmd.steps.join(' → ')}` : row.cmd.command;
+      const cmd = truncate(cmdText, cmdW).padEnd(cmdW + 1);
+      const badges = [
+        row.project ? theme.accent('⌂') : '',
+        row.lastFailed ? theme.error('✗') : '',
+        row.runs > 0 ? theme.dim(`${icons.fire} ${row.runs}`) : theme.faint('·'),
+      ]
+        .filter(Boolean)
+        .join(' ');
+      return ` ${marker} ${name} ${active ? cmd : theme.dim(cmd)} ${badges}`;
     });
   }
 
@@ -232,15 +264,33 @@ export class Tui {
     const env = Object.entries(row.cmd.env ?? {})
       .map(([k, v]) => `${k}=${isSensitive(k) ? maskValue(v) : v}`)
       .join(theme.faint(' · '));
-    const lines = [
-      theme.faint(` ${'─'.repeat(Math.max(10, this.width - 2))}`),
-      ` ${label('command')}${truncate(row.cmd.command, this.width - 14)}`,
-      ` ${label('where')}${theme.dim(truncate(where, this.width - 14))}`,
-    ];
+    const lines = [theme.faint(` ${'─'.repeat(Math.max(10, this.width - 2))}`)];
+    if (row.cmd.steps?.length) {
+      lines.push(` ${label('chain')}${row.cmd.steps.join(theme.faint(' → '))}`);
+    } else {
+      lines.push(` ${label('command')}${truncate(row.cmd.command, this.width - 14)}`);
+    }
+    lines.push(` ${label('where')}${theme.dim(truncate(where, this.width - 14))}`);
+    if (row.cmd.description) {
+      lines.push(` ${label('note')}${theme.dim(truncate(row.cmd.description, this.width - 14))}`);
+    }
+    if (row.cmd.tags?.length) {
+      lines.push(` ${label('tags')}${row.cmd.tags.map((t) => theme.accent(`#${t}`)).join(' ')}`);
+    }
     if (env) lines.push(` ${label('env')}${theme.dim(truncate(env, this.width - 14))}`);
-    lines.push(
-      ` ${label('runs')}${theme.dim(row.runs > 0 ? `${row.runs} · last ${timeAgo(row.lastRun!)}` : 'never')}`
-    );
+    if (row.project) lines.push(` ${label('source')}${theme.dim('project (.aliasmate.json)')}`);
+    const last = getLastExecution(row.name);
+    const status =
+      row.runs === 0
+        ? 'never'
+        : `${row.runs} · last ${timeAgo(row.lastRun!)}${
+            last?.exitCode !== undefined
+              ? last.exitCode === 0
+                ? ` ${theme.success('✓')}`
+                : ` ${theme.error(`✗ exit ${last.exitCode}`)}`
+              : ''
+          }`;
+    lines.push(` ${label('runs')}${theme.dim(status)}`);
     return lines;
   }
 
@@ -280,7 +330,7 @@ export class Tui {
       );
     });
 
-    const pmActive = form.active === 3;
+    const pmActive = form.active === 4;
     const pmText =
       form.pathMode === 'saved'
         ? 'saved directory (project command)'
@@ -289,7 +339,7 @@ export class Tui {
       ` ${label('runs in', pmActive)}${pmActive ? pmText : theme.dim(pmText)}${pmActive ? theme.faint('  · space to toggle') : ''}`
     );
 
-    const envActive = form.active === 4;
+    const envActive = form.active === 5;
     const keptCount = form.keepEnv ? Object.keys(form.keepEnv).length : 0;
     const envLabels: Record<EnvChoice, string> = {
       none: 'none',
@@ -347,6 +397,8 @@ export class Tui {
           key('e', 'edit'),
           key('d', 'delete'),
           key('s', 'stats'),
+          key('c', 'copy'),
+          key('u', 'undo'),
           key('x', 'export'),
           key('i', 'import'),
           key('q', 'quit'),
@@ -375,6 +427,14 @@ export class Tui {
     } else if (this.mode === 'input') {
       out.push(...this.inputPane());
     } else {
+      if (this.suggestion) {
+        out.push(
+          ` ${theme.accent('✦')} ${theme.dim(`you've run`)} ${truncate(this.suggestion.command, 48)} ${theme.dim(
+            `${this.suggestion.count}× — press`
+          )} ${theme.accent('a')} ${theme.dim('to save it')}`
+        );
+        out.push('');
+      }
       const detail = this.detailPane();
       const listLines = Math.max(3, this.height - out.length - detail.length - 4);
       out.push(...this.listPane(listLines));
@@ -456,7 +516,7 @@ export class Tui {
 
   private submitForm(): void {
     const form = this.form!;
-    const [name, command, directory] = form.fields.map((f) => f.value.trim());
+    const [name, command, directory, description] = form.fields.map((f) => f.value.trim());
     const renaming = form.editing !== undefined && name !== form.editing;
 
     const nameCheck = validateCommandName(name);
@@ -490,7 +550,17 @@ export class Tui {
 
     try {
       if (renaming) renameCommand(form.editing!, name);
-      saveCommand({ name, command, directory, pathMode: form.pathMode, env });
+      saveCommand({
+        name,
+        command,
+        directory,
+        description,
+        pathMode: form.pathMode,
+        env,
+        tags: form.keepTags,
+        steps: form.keepSteps,
+      });
+      clearFromRawLog(command);
       this.message = `${icons.ok} ${theme.dim(renaming ? `renamed ${form.editing} → ${name}` : `saved ${name}`)}`;
       const finalName = name;
       this.form = null;
@@ -506,8 +576,8 @@ export class Tui {
 
   private handleFormKey(str: string | undefined, key: readline.Key): void {
     const form = this.form!;
-    const fieldCount = 5;
-    const isTextField = form.active < 3;
+    const fieldCount = 6;
+    const isTextField = form.active < 4;
 
     if (key.name === 'escape') {
       this.form = null;
@@ -537,7 +607,7 @@ export class Tui {
       return this.render();
     }
     if (key.name === 'space' || key.name === 'left' || key.name === 'right') {
-      if (form.active === 3) {
+      if (form.active === 4) {
         form.pathMode = form.pathMode === 'saved' ? 'current' : 'saved';
       } else {
         const cycle: EnvChoice[] = form.keepEnv ? ['keep', 'capture', 'none'] : ['none', 'capture'];
@@ -615,18 +685,46 @@ export class Tui {
         else if (str === 'n') this.openForm();
         else if (str === 'e') {
           const row = this.visibleRows()[this.selected];
-          if (row) {
+          if (row?.project) {
+            this.message = theme.warning(`⌂ project command — edit .aliasmate.json directly`);
+          } else if (row) {
             this.openForm({
               name: row.name,
               command: row.cmd.command,
               directory: row.cmd.directory,
+              description: row.cmd.description,
               pathMode: row.cmd.pathMode ?? 'saved',
               env: row.cmd.env,
+              tags: row.cmd.tags,
+              steps: row.cmd.steps,
               editing: row.name,
             });
           }
-        } else if (str === 'd' && this.visibleRows().length > 0) this.mode = 'confirm-delete';
-        else if (str === 's') this.mode = 'stats';
+        } else if (str === 'd' && this.visibleRows().length > 0) {
+          if (this.visibleRows()[this.selected]?.project) {
+            this.message = theme.warning(`⌂ project command — edit .aliasmate.json directly`);
+          } else {
+            this.mode = 'confirm-delete';
+          }
+        } else if (str === 'a' && this.suggestion) {
+          this.openForm({ command: this.suggestion.command, directory: process.cwd() });
+        } else if (str === 'c') {
+          const row = this.visibleRows()[this.selected];
+          if (row) {
+            const copied = copyToClipboard(row.cmd.command);
+            this.message = copied
+              ? `${icons.ok} ${theme.dim(`copied ${row.name}`)}`
+              : theme.warning('no clipboard tool found');
+          }
+        } else if (str === 'u') {
+          const label = undoLast();
+          if (label) {
+            this.refresh();
+            this.message = `${icons.ok} ${theme.dim(`undid ${label}`)}`;
+          } else {
+            this.message = theme.faint('nothing to undo');
+          }
+        } else if (str === 's') this.mode = 'stats';
         else if (str === 'x') this.openInput('export');
         else if (str === 'i') this.openInput('import');
     }

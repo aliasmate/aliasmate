@@ -22,7 +22,9 @@ function usageMaps(): { runCounts: Map<string, number>; lastRuns: Map<string, st
 }
 
 export function listHandler(format: ListFormat): void {
-  const commands = listCommands();
+  const { listEffectiveCommands } = require('../core/project') as typeof import('../core/project');
+  const effective = listEffectiveCommands();
+  const commands = effective.commands;
   const count = Object.keys(commands).length;
   if (count === 0) {
     console.log(theme.dim('No saved commands yet.'));
@@ -34,9 +36,9 @@ export function listHandler(format: ListFormat): void {
   if (format === 'table') {
     console.log(`\n${brandLine(`· ${count} command${count > 1 ? 's' : ''}`)}\n`);
   }
-  console.log(render(commands, format, usageMaps()));
+  console.log(render(commands, format, { ...usageMaps(), projectNames: effective.projectNames }));
   if (format === 'table') {
-    console.log(theme.faint('\n  ⁺N saved env vars · aliasmate run <name>'));
+    console.log(theme.faint('\n  ⁺N env vars · ⌂ project · ⛓ chain · aliasmate run <name>'));
   }
 }
 

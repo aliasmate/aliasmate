@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { getOnboardingPath } from '../core/store';
+import { listCommands, saveCommand } from '../core/commands';
 import { theme, icons } from './theme';
 
 interface OnboardingState {
@@ -30,6 +31,32 @@ export function maybeShowOnboarding(currentVersion: string): boolean {
   if (state.lastSeenVersion === currentVersion) return false;
   const firstRun = !state.lastSeenVersion;
   writeState({ lastSeenVersion: currentVersion });
+
+  if (firstRun && Object.keys(listCommands()).length === 0) {
+    // A couple of harmless examples so the TUI isn't an empty room.
+    saveCommand(
+      {
+        name: 'example-hello',
+        command: 'echo "aliasmate works — delete me with d in the TUI"',
+        directory: process.cwd(),
+        pathMode: 'current',
+        description: 'example command — safe to delete',
+        tags: ['example'],
+      },
+      { undo: false }
+    );
+    saveCommand(
+      {
+        name: 'example-branch',
+        command: 'git checkout {{branch}}',
+        directory: process.cwd(),
+        pathMode: 'current',
+        description: 'example with a {{placeholder}} — prompts at run time',
+        tags: ['example'],
+      },
+      { undo: false }
+    );
+  }
 
   if (firstRun) {
     console.log();

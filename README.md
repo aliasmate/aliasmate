@@ -46,6 +46,9 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `e` | edit selected (in-TUI form) |
 | `d` | delete (with confirm) |
 | `←→` | move the caret while editing form fields |
+| `c` | copy the selected command to the clipboard |
+| `u` | undo the last change |
+| `a` | save the command you keep repeating (suggested automatically) |
 | `s` | usage stats |
 | `x` | export a full backup (JSON) |
 | `i` | import commands from a JSON file |
@@ -59,6 +62,14 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `aliasmate prev [name]` | Capture your last shell command → TUI form, prefilled (saves directly when scripted) |
 | `aliasmate save` | Open the TUI with a blank new-command form |
 | `aliasmate run <name> [path]` | Run a saved command, optionally in a different directory |
+| `aliasmate run <name> -- <args>` | Append extra arguments to the saved command |
+| `aliasmate copy <name>` | Copy a command to the clipboard |
+| `aliasmate undo` | Revert the last save/edit/rename/delete/import |
+| `aliasmate chain <name> <steps...>` | Save a chain that runs commands in sequence |
+| `aliasmate tag <name> [tags...]` | Tag commands for search (`-` clears) |
+| `aliasmate init install` | Install the shell hook (reliable capture + suggestions) |
+| `aliasmate project init/add/remove` | Share commands with your team via `.aliasmate.json` |
+| `aliasmate sync push/pull` | Sync commands across machines via a private gist (gh CLI) |
 | `aliasmate run @0` | Re-run your most recent command (`@1`, `@2`, …) |
 | `aliasmate run <name> --dry-run [--verbose]` | Preview without executing |
 | `aliasmate list` (`ls`) | List commands (`--format table\|json\|yaml\|compact`) |
@@ -77,6 +88,50 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `aliasmate config` | Show where your data is stored |
 
 ## Key features
+
+### Shell hook (recommended)
+
+```bash
+aliasmate init install    # zsh, bash, or fish
+```
+
+The hook keeps your last command instantly available to `aliasmate prev` (no history-file lag) and powers suggestions: when you've typed the same command three times without saving it, the TUI offers to save it with one keypress (`a`).
+
+### Placeholders & arguments
+
+```bash
+# {{placeholders}} are prompted at run time
+aliasmate save    # command: git checkout {{branch}}
+aliasmate run co  # ? branch ▸ main
+
+# or append args ad hoc
+aliasmate run build -- --watch
+```
+
+### Chains
+
+```bash
+aliasmate chain ship build test deploy
+aliasmate run ship   # runs each in its own directory, stops on failure
+```
+
+### Project commands
+
+```bash
+aliasmate project init        # creates .aliasmate.json — commit it
+aliasmate project add build   # copy a saved command into the project
+```
+
+Inside that repo, everyone with aliasmate sees the project's commands (marked ⌂ in the TUI) merged with their own.
+
+### Sync across machines
+
+```bash
+aliasmate sync push            # creates/updates a private GitHub gist (needs gh)
+aliasmate sync set <id>        # on another machine
+aliasmate sync pull
+```
+
 
 ### Path modes
 Each command runs either in its **saved directory** (project commands like `build`) or in your **current directory** (general utilities like `lint`). Choose when saving; change anytime with `edit`.

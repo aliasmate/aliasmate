@@ -7,6 +7,12 @@ export interface SavedCommand {
   directory: string;
   pathMode?: PathMode;
   env?: Record<string, string>;
+  /** One-line human note: why/when to use this command. */
+  description?: string;
+  /** Free-form labels for filtering. */
+  tags?: string[];
+  /** Chain: names of saved commands to run sequentially (stops on failure). */
+  steps?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +25,8 @@ export type AliasMap = Record<string, string>;
 export interface ExecutionEntry {
   commandName: string;
   executedAt: string;
+  exitCode?: number;
+  durationMs?: number;
 }
 
 export interface ValidationIssue {

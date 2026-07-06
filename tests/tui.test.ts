@@ -123,7 +123,7 @@ describe('Tui delete', () => {
 
 describe('Tui form', () => {
   function fillAndSubmit(tui: Tui): void {
-    press(tui, [enter, enter, enter, enter]); // through directory, pathMode, env → submit
+    press(tui, [enter, enter, enter, enter, enter]); // directory, note, pathMode, env → submit
   }
 
   it('creates a command from the form', () => {
@@ -170,7 +170,7 @@ describe('Tui form', () => {
     type(tui, 'util');
     press(tui, [enter]);
     type(tui, 'echo u');
-    press(tui, [enter, enter]); // to pathMode field
+    press(tui, [enter, enter, enter]); // directory, note → pathMode field
     press(tui, [{ name: 'space' }]);
     press(tui, [enter, enter]); // env → submit
     expect(getCommand('util')!.pathMode).toBe('current');
@@ -188,7 +188,7 @@ describe('Tui form', () => {
       Array.from({ length: 8 }, () => ({ name: 'backspace' }))
     );
     type(tui, 'echo new');
-    press(tui, [enter, enter, enter, enter]); // directory, pathMode, env → submit
+    press(tui, [enter, enter, enter, enter, enter]); // directory, note, pathMode, env → submit
     const saved = getCommand('keepme')!;
     expect(saved.command).toBe('echo new');
     expect(saved.env).toEqual({ FOO: 'bar' });
@@ -206,7 +206,7 @@ describe('Tui form', () => {
       Array.from({ length: 7 }, () => ({ name: 'backspace' }))
     );
     type(tui, 'newname');
-    press(tui, [enter, enter, enter, enter, enter]); // command, dir, pathMode, env → submit
+    press(tui, [enter, enter, enter, enter, enter, enter]); // command, dir, note, pathMode, env → submit
     expect(getCommand('oldname')).toBeUndefined();
     expect(getCommand('newname')!.command).toBe('echo hi');
   });
@@ -221,7 +221,7 @@ describe('Tui form', () => {
     // Move left past "o" to fix "helo" → "hello"
     press(tui, [{ name: 'left' }]);
     type(tui, 'l');
-    press(tui, [enter, enter, enter, enter]);
+    press(tui, [enter, enter, enter, enter, enter]);
     expect(getCommand('caret')!.command).toBe('echo hello');
   });
 
@@ -234,7 +234,7 @@ describe('Tui form', () => {
     type(tui, 'xecho hi');
     press(tui, [{ name: 'home' }, { name: 'delete' }, { name: 'end' }]);
     type(tui, '!');
-    press(tui, [enter, enter, enter, enter]);
+    press(tui, [enter, enter, enter, enter, enter]);
     expect(getCommand('caret2')!.command).toBe('echo hi!');
   });
 
@@ -251,7 +251,7 @@ describe('Tui form', () => {
     const tui = makeTui();
     void tui.waitForAction();
     tui.openForm({ name: 'from-prev', command: 'git status', directory: '/tmp' });
-    press(tui, [enter, enter, enter, enter]); // accept all prefilled fields
+    press(tui, [enter, enter, enter, enter, enter]); // accept all prefilled fields
     const saved = getCommand('from-prev')!;
     expect(saved.command).toBe('git status');
   });

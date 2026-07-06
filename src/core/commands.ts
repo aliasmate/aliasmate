@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { configFile, getMetadata, setMetadata } from './store';
+import { pushUndo } from './undo';
 import { CommandMap, AliasMap, PathMode, SavedCommand } from './types';
 
 const ALIASES_KEY = 'command_aliases';
@@ -28,6 +29,13 @@ export const RESERVED_NAMES = new Set([
   'changes',
   'config',
   'stats',
+  'copy',
+  'undo',
+  'chain',
+  'tag',
+  'init',
+  'project',
+  'sync',
   'help',
 ]);
 
@@ -60,9 +68,12 @@ export interface SaveInput {
   directory: string;
   pathMode?: PathMode;
   env?: Record<string, string>;
+  description?: string;
+  tags?: string[];
+  steps?: string[];
 }
 
-export function saveCommand(input: SaveInput): SavedCommand {
+export function saveCommand(input: SaveInput, options: { undo?: boolean } = {}): SavedCommand {
   const name = input.name.trim();
   const command = input.command.trim();
   if (!name) throw new Error('Command name cannot be empty');
@@ -81,9 +92,13 @@ export function saveCommand(input: SaveInput): SavedCommand {
     directory: path.resolve(input.directory),
     pathMode: input.pathMode ?? 'saved',
     ...(input.env && Object.keys(input.env).length > 0 ? { env: input.env } : {}),
+    ...(input.description?.trim() ? { description: input.description.trim() } : {}),
+    ...(input.tags && input.tags.length > 0 ? { tags: input.tags } : {}),
+    ...(input.steps && input.steps.length > 0 ? { steps: input.steps } : {}),
     createdAt: commands[name]?.createdAt ?? now,
     updatedAt: now,
   };
+  if (options.undo !== false) pushUndo(commands[name] ? `edit ${name}` : `create ${name}`);
   configFile.update((data) => {
     data[name] = entry;
   });
@@ -92,6 +107,7 @@ export function saveCommand(input: SaveInput): SavedCommand {
 
 export function deleteCommand(name: string): boolean {
   if (!commandExists(name)) return false;
+  pushUndo(`delete ${name}`);
   configFile.update((data) => {
     delete data[name];
   });
@@ -113,6 +129,7 @@ export function renameCommand(from: string, to: string): void {
   if (nameCheck !== true) throw new Error(nameCheck);
   if (commandExists(to)) throw new Error(`Command "${to}" already exists`);
 
+  pushUndo(`rename ${from} → ${to}`);
   configFile.update((data) => {
     data[to] = { ...existing, updatedAt: new Date().toISOString() };
     delete data[from];
@@ -147,7 +164,9 @@ export function searchCommands(query: string): CommandMap {
     if (
       name.toLowerCase().includes(q) ||
       cmd.command.toLowerCase().includes(q) ||
-      cmd.directory.toLowerCase().includes(q)
+      cmd.directory.toLowerCase().includes(q) ||
+      (cmd.description ?? '').toLowerCase().includes(q) ||
+      (cmd.tags ?? []).some((t) => t.toLowerCase().includes(q))
     ) {
       result[name] = cmd;
     }
