@@ -11,6 +11,7 @@ import {
   removeShortcutAlias,
   resolveName,
 } from '../src/core/commands';
+import { recordExecution, getRecentNames } from '../src/core/recent';
 
 let dir: string;
 beforeEach(() => {
@@ -64,9 +65,27 @@ describe('deleteCommand', () => {
 describe('renameCommand', () => {
   it('renames preserving data', () => {
     saveCommand({ name: 'old', command: 'echo hi', directory: '/tmp' });
-    renameCommand('old', 'new');
+    renameCommand('old', 'new-name');
     expect(getCommand('old')).toBeUndefined();
-    expect(getCommand('new')!.command).toBe('echo hi');
+    expect(getCommand('new-name')!.command).toBe('echo hi');
+  });
+
+  it('re-points shortcut aliases and run history to the new name', () => {
+    saveCommand({ name: 'old', command: 'echo hi', directory: '/tmp' });
+    setShortcutAlias('o', 'old');
+    recordExecution('old');
+    renameCommand('old', 'fresh');
+    expect(listAliases()).toEqual({ o: 'fresh' });
+    expect(getRecentNames()).toEqual(['fresh']);
+  });
+
+  it('rejects invalid or taken target names', () => {
+    saveCommand({ name: 'a', command: 'x', directory: '/tmp' });
+    saveCommand({ name: 'b', command: 'y', directory: '/tmp' });
+    expect(() => renameCommand('a', 'b')).toThrow(/already exists/);
+    expect(() => renameCommand('a', 'has space')).toThrow();
+    expect(() => renameCommand('a', 'run')).toThrow(/reserved/);
+    expect(() => renameCommand('ghost', 'x')).toThrow(/not found/);
   });
 });
 

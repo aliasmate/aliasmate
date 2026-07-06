@@ -194,6 +194,50 @@ describe('Tui form', () => {
     expect(saved.env).toEqual({ FOO: 'bar' });
   });
 
+  it('renames via the edit form when the name field changes', () => {
+    saveCommand({ name: 'oldname', command: 'echo hi', directory: '/tmp' });
+    const tui = makeTui();
+    tui.refresh();
+    void tui.waitForAction();
+    press(tui, ['e']);
+    press(tui, [{ name: 'up' }]); // from command field up to name field
+    press(
+      tui,
+      Array.from({ length: 7 }, () => ({ name: 'backspace' }))
+    );
+    type(tui, 'newname');
+    press(tui, [enter, enter, enter, enter, enter]); // command, dir, pathMode, env → submit
+    expect(getCommand('oldname')).toBeUndefined();
+    expect(getCommand('newname')!.command).toBe('echo hi');
+  });
+
+  it('supports caret movement for mid-string editing', () => {
+    const tui = makeTui();
+    void tui.waitForAction();
+    press(tui, ['n']);
+    type(tui, 'caret');
+    press(tui, [enter]);
+    type(tui, 'echo helo');
+    // Move left past "o" to fix "helo" → "hello"
+    press(tui, [{ name: 'left' }]);
+    type(tui, 'l');
+    press(tui, [enter, enter, enter, enter]);
+    expect(getCommand('caret')!.command).toBe('echo hello');
+  });
+
+  it('supports home/end and delete-forward', () => {
+    const tui = makeTui();
+    void tui.waitForAction();
+    press(tui, ['n']);
+    type(tui, 'caret2');
+    press(tui, [enter]);
+    type(tui, 'xecho hi');
+    press(tui, [{ name: 'home' }, { name: 'delete' }, { name: 'end' }]);
+    type(tui, '!');
+    press(tui, [enter, enter, enter, enter]);
+    expect(getCommand('caret2')!.command).toBe('echo hi!');
+  });
+
   it('cancels with esc leaving nothing saved', () => {
     const tui = makeTui();
     void tui.waitForAction();

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.2.0] - 2026-07-06
+
+### Added
+- **Rename commands**: `aliasmate rename <old> <new>` (alias `mv`), or simply change the name field in the TUI edit form — shortcut aliases and run history follow the new name
+- **Standalone binaries** (no Node.js/npm needed): esbuild bundle + Node SEA build script, `install.sh` one-liner installer, and a GitHub Actions release workflow producing macOS (x64/arm64), Linux (x64/arm64), and Windows binaries on every tag
+- **`export --full`**: restorable backups that keep real secret env values (default export still masks them for safe sharing)
+- **Caret editing in TUI form fields**: ←/→, home/end (ctrl+a/ctrl+e), delete-forward, ctrl+u, and mid-string insertion
+
 ## [2.1.0] - 2026-07-06
 
 Complete visual redesign and a real full-screen TUI.

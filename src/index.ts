@@ -75,6 +75,14 @@ program
   .action((name: string) => wrap(async () => (await import('./cli/manage')).editHandler(name)));
 
 program
+  .command('rename <old> <new>')
+  .alias('mv')
+  .description('Rename a saved command (aliases and history follow)')
+  .action((oldName: string, newName: string) =>
+    wrap(async () => (await import('./cli/manage')).renameHandler(oldName, newName))
+  );
+
+program
   .command('delete <name>')
   .alias('rm')
   .description('Delete a saved command')
@@ -114,8 +122,9 @@ program
 
 program
   .command('export <file>')
-  .description('Export commands to a JSON or YAML file (secrets masked)')
+  .description('Export commands to a JSON or YAML file (secrets masked unless --full)')
   .option('--format <type>', 'json or yaml')
+  .option('--full', 'Include real secret env values (restorable backup)')
   .action((file: string, options) =>
     wrap(async () => (await import('./cli/transfer')).exportHandler(file, options))
   );

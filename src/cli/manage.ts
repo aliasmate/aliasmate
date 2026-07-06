@@ -93,6 +93,12 @@ export async function editHandler(name: string): Promise<void> {
   });
 }
 
+export async function renameHandler(from: string, to: string): Promise<void> {
+  const { renameCommand } = await import('../core/commands');
+  renameCommand(from, to);
+  ok(`renamed ${theme.name(from)} ${theme.dim('→')} ${theme.name(to)}`);
+}
+
 export function aliasHandler(
   shortAlias: string | undefined,
   commandName: string | undefined,

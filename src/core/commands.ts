@@ -14,6 +14,8 @@ export const RESERVED_NAMES = new Set([
   'search',
   'find',
   'edit',
+  'rename',
+  'mv',
   'delete',
   'rm',
   'export',
@@ -107,9 +109,34 @@ export function renameCommand(from: string, to: string): void {
   const commands = listCommands();
   const existing = commands[from];
   if (!existing) throw new Error(`Command "${from}" not found`);
+  const nameCheck = validateCommandName(to);
+  if (nameCheck !== true) throw new Error(nameCheck);
   if (commandExists(to)) throw new Error(`Command "${to}" already exists`);
-  saveCommand({ name: to, ...existing });
-  deleteCommand(from);
+
+  configFile.update((data) => {
+    data[to] = { ...existing, updatedAt: new Date().toISOString() };
+    delete data[from];
+  });
+
+  // Shortcut aliases and run history follow the command to its new name.
+  const aliases = listAliases();
+  let aliasesChanged = false;
+  for (const a of Object.keys(aliases)) {
+    if (aliases[a] === from) {
+      aliases[a] = to;
+      aliasesChanged = true;
+    }
+  }
+  if (aliasesChanged) setMetadata(ALIASES_KEY, aliases);
+
+  const history =
+    getMetadata<Array<{ commandName: string; executedAt: string }>>('execution_history');
+  if (history?.some((e) => e.commandName === from)) {
+    setMetadata(
+      'execution_history',
+      history.map((e) => (e.commandName === from ? { ...e, commandName: to } : e))
+    );
+  }
 }
 
 /** Case-insensitive search across name, command text, and directory. */

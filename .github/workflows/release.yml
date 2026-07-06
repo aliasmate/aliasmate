@@ -1,0 +1,49 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm run build
+      - run: npx jest --ci
+
+  binaries:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - { runner: macos-13, asset: aliasmate-darwin-x64 }
+          - { runner: macos-14, asset: aliasmate-darwin-arm64 }
+          - { runner: ubuntu-22.04, asset: aliasmate-linux-x64 }
+          - { runner: ubuntu-22.04-arm, asset: aliasmate-linux-arm64 }
+          - { runner: windows-2022, asset: aliasmate-win-x64.exe }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: bash scripts/build-binary.sh build
+      - name: Rename asset
+        shell: bash
+        run: |
+          if [[ "${{ matrix.asset }}" == *.exe ]]; then
+            mv build/aliasmate.exe "build/${{ matrix.asset }}"
+          else
+            mv build/aliasmate "build/${{ matrix.asset }}"
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: build/${{ matrix.asset }}
+          generate_release_notes: true

@@ -7,11 +7,19 @@ Save shell commands with their working directories and re-run them from anywhere
 
 ## Install
 
+**Standalone (no Node.js required):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aliasmate/aliasmate/main/install.sh | sh
+```
+
+Downloads a self-contained binary for macOS (Intel/Apple Silicon) or Linux (x64/arm64). Windows users: grab `aliasmate-win-x64.exe` from the [latest release](https://github.com/aliasmate/aliasmate/releases/latest).
+
+**Via npm** (requires Node.js 18+):
+
 ```bash
 npm i -g aliasmate
 ```
-
-Requires Node.js 18+. Works on macOS, Linux, and Windows.
 
 ## Quick start
 
@@ -37,6 +45,7 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `n` | new command (in-TUI form) |
 | `e` | edit selected (in-TUI form) |
 | `d` | delete (with confirm) |
+| `←→` | move the caret while editing form fields |
 | `s` | usage stats |
 | `q` / `esc` | quit |
 
@@ -52,13 +61,15 @@ Running `aliasmate` with no arguments opens a full-screen TUI: your commands sor
 | `aliasmate run <name> --dry-run [--verbose]` | Preview without executing |
 | `aliasmate list` (`ls`) | List commands (`--format table\|json\|yaml\|compact`) |
 | `aliasmate search <query>` (`find`) | Search by name, text, or directory |
-| `aliasmate edit <name>` | Edit a command in the TUI form |
+| `aliasmate edit <name>` | Edit a command in the TUI form (change the name field to rename) |
+| `aliasmate rename <old> <new>` (`mv`) | Rename a command — aliases and run history follow |
 | `aliasmate delete <name>` (`rm`) | Delete a command (`-f` skips confirmation) |
 | `aliasmate alias <short> <name>` | Create a shortcut alias (`--list`, `--remove <a>`) |
 | `aliasmate recent` | Recently run commands with `@N` indices (`--clear`) |
 | `aliasmate stats` | Usage statistics: most-used commands, total runs |
 | `aliasmate validate [name]` | Check commands, directories, and env vars |
-| `aliasmate export <file>` | Export to JSON/YAML — secrets masked |
+| `aliasmate export <file>` | Export to JSON/YAML — secrets masked for sharing |
+| `aliasmate export <file> --full` | Restorable backup with real secret values |
 | `aliasmate import <file>` | Import from JSON (backs up your config first) |
 | `aliasmate completion install` | Install tab completion (bash/zsh/fish) |
 | `aliasmate config` | Show where your data is stored |
@@ -76,6 +87,15 @@ When saving, you can capture user-defined env vars (`NODE_ENV`, `API_URL`, …) 
 - Destructive-looking commands (`rm -rf`, `dd`, `mkfs`, …) get a warning before running.
 - All writes to your config are atomic; a crash can never corrupt your data.
 - `import` writes a timestamped backup of your existing config before touching it.
+
+### Backup & restore
+
+```bash
+aliasmate export backup.json --full   # everything, including real env secrets
+aliasmate import backup.json          # restore (auto-backs up current state first)
+```
+
+Default exports mask secret values so they're safe to share with a team; `--full` keeps them intact for personal backups.
 
 ### Recent commands & stats
 Every run is tracked. `aliasmate run @0` re-runs your latest command, `aliasmate recent` lists history, and `aliasmate stats` shows your most-used commands.

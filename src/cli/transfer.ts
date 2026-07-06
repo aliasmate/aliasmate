@@ -6,7 +6,7 @@ import { toJson, toYaml } from '../ui/format';
 import { getConfigDir } from '../core/store';
 import { ok, fail, warn, theme } from '../ui/theme';
 
-export function exportHandler(file: string, options: { format?: string }): void {
+export function exportHandler(file: string, options: { format?: string; full?: boolean }): void {
   const commands = listCommands();
   if (Object.keys(commands).length === 0) {
     warn('No commands to export');
@@ -14,10 +14,18 @@ export function exportHandler(file: string, options: { format?: string }): void 
   }
   const format =
     options.format ?? (file.endsWith('.yaml') || file.endsWith('.yml') ? 'yaml' : 'json');
-  const content = format === 'yaml' ? toYaml(commands) : toJson(commands);
+  const mask = !options.full;
+  const content = format === 'yaml' ? toYaml(commands, mask) : toJson(commands, mask);
   fs.writeFileSync(path.resolve(file), content, 'utf8');
   ok(`Exported ${Object.keys(commands).length} commands to ${theme.name(file)}`);
-  console.log(theme.dim('  Sensitive env values were masked for safe sharing.'));
+  if (mask) {
+    console.log(theme.dim('  Sensitive env values were masked for safe sharing.'));
+    console.log(theme.dim('  For a restorable backup with real secret values, use --full.'));
+  } else {
+    console.log(
+      theme.warning('  Full export: secret env values are in PLAIN TEXT — keep this file safe.')
+    );
+  }
 }
 
 function isValidEntry(value: unknown): value is SavedCommand {

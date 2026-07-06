@@ -3,6 +3,7 @@ import {
   listCommands,
   saveCommand,
   deleteCommand,
+  renameCommand,
   validateCommandName,
   commandExists,
 } from '../core/commands';
@@ -44,8 +45,16 @@ interface Row {
   lastRun?: string;
 }
 
+interface FormField {
+  key: 'name' | 'command' | 'directory';
+  label: string;
+  value: string;
+  /** Caret position within value (0..length). */
+  cursor: number;
+}
+
 interface FormState {
-  fields: { key: 'name' | 'command' | 'directory'; label: string; value: string }[];
+  fields: FormField[];
   pathMode: PathMode;
   envChoice: EnvChoice;
   keepEnv?: Record<string, string>;
@@ -110,11 +119,13 @@ export class Tui {
 
   openForm(seed: FormSeed = {}): void {
     this.form = {
-      fields: [
-        { key: 'name', label: 'name', value: seed.name ?? '' },
-        { key: 'command', label: 'command', value: seed.command ?? '' },
-        { key: 'directory', label: 'directory', value: seed.directory ?? process.cwd() },
-      ],
+      fields: (
+        [
+          { key: 'name', label: 'name', value: seed.name ?? '' },
+          { key: 'command', label: 'command', value: seed.command ?? '' },
+          { key: 'directory', label: 'directory', value: seed.directory ?? process.cwd() },
+        ] as Omit<FormField, 'cursor'>[]
+      ).map((f) => ({ ...f, cursor: f.value.length })),
       pathMode: seed.pathMode ?? 'saved',
       envChoice: seed.env && Object.keys(seed.env).length > 0 ? 'keep' : 'none',
       keepEnv: seed.env,
@@ -217,11 +228,14 @@ export class Tui {
 
     form.fields.forEach((field, i) => {
       const active = form.active === i;
-      const locked = field.key === 'name' && form.editing !== undefined;
-      let value: string = field.value;
-      if (locked) value = theme.dim(field.value);
-      else if (active) value = `${field.value}${theme.accent('▏')}`;
-      lines.push(` ${label(field.label, active)}${value}`);
+      const renamed =
+        field.key === 'name' && form.editing !== undefined && field.value !== form.editing;
+      const value = active
+        ? `${field.value.slice(0, field.cursor)}${theme.accent('▏')}${field.value.slice(field.cursor)}`
+        : field.value;
+      lines.push(
+        ` ${label(field.label, active)}${value}${renamed ? theme.faint(`  · renames ${form.editing}`) : ''}`
+      );
     });
 
     const pmActive = form.active === 3;
@@ -262,7 +276,7 @@ export class Tui {
       case 'filter':
         return ` ${theme.accent('/')} ${this.filter}${theme.accent('▏')}  ${theme.faint('esc clear · enter run · ↑↓ move')}`;
       case 'form':
-        return ` ${[key('↑↓/tab', 'field'), key('enter', 'next/save'), key('esc', 'cancel')].join(sep)}`;
+        return ` ${[key('↑↓/tab', 'field'), key('←→', 'cursor'), key('enter', 'next/save'), key('esc', 'cancel')].join(sep)}`;
       case 'stats':
         return ` ${theme.faint('any key to go back')}`;
       default:
@@ -326,14 +340,15 @@ export class Tui {
   private submitForm(): void {
     const form = this.form!;
     const [name, command, directory] = form.fields.map((f) => f.value.trim());
+    const renaming = form.editing !== undefined && name !== form.editing;
 
-    const nameCheck = form.editing ? true : validateCommandName(name);
+    const nameCheck = validateCommandName(name);
     if (nameCheck !== true) {
       form.error = nameCheck;
       form.active = 0;
       return this.render();
     }
-    if (!form.editing && commandExists(name)) {
+    if ((!form.editing || renaming) && commandExists(name)) {
       form.error = `"${name}" already exists — pick another name or edit it instead`;
       form.active = 0;
       return this.render();
@@ -357,9 +372,10 @@ export class Tui {
           : captureUserEnv();
 
     try {
-      const finalName = form.editing ?? name;
-      saveCommand({ name: finalName, command, directory, pathMode: form.pathMode, env });
-      this.message = `${icons.ok} ${theme.dim(`saved ${finalName}`)}`;
+      if (renaming) renameCommand(form.editing!, name);
+      saveCommand({ name, command, directory, pathMode: form.pathMode, env });
+      this.message = `${icons.ok} ${theme.dim(renaming ? `renamed ${form.editing} → ${name}` : `saved ${name}`)}`;
+      const finalName = name;
       this.form = null;
       this.mode = 'browse';
       this.refresh();
@@ -375,7 +391,6 @@ export class Tui {
     const form = this.form!;
     const fieldCount = 5;
     const isTextField = form.active < 3;
-    const nameLocked = form.editing !== undefined;
 
     if (key.name === 'escape') {
       this.form = null;
@@ -386,7 +401,6 @@ export class Tui {
     if (key.name === 'return') {
       if (form.active < fieldCount - 1) {
         form.active += 1;
-        if (form.active === 0 && nameLocked) form.active = 1;
       } else {
         return this.submitForm();
       }
@@ -394,20 +408,35 @@ export class Tui {
     }
     if (key.name === 'up' || (key.name === 'tab' && key.shift)) {
       form.active = (form.active - 1 + fieldCount) % fieldCount;
-      if (form.active === 0 && nameLocked) form.active = fieldCount - 1;
       return this.render();
     }
     if (key.name === 'down' || key.name === 'tab') {
       form.active = (form.active + 1) % fieldCount;
-      if (form.active === 0 && nameLocked) form.active = 1;
       return this.render();
     }
     if (isTextField) {
       const field = form.fields[form.active];
-      if (key.name === 'backspace') {
-        field.value = field.value.slice(0, -1);
+      if (key.name === 'left') {
+        field.cursor = Math.max(0, field.cursor - 1);
+      } else if (key.name === 'right') {
+        field.cursor = Math.min(field.value.length, field.cursor + 1);
+      } else if (key.name === 'home' || (key.ctrl && key.name === 'a')) {
+        field.cursor = 0;
+      } else if (key.name === 'end' || (key.ctrl && key.name === 'e')) {
+        field.cursor = field.value.length;
+      } else if (key.ctrl && key.name === 'u') {
+        field.value = field.value.slice(field.cursor);
+        field.cursor = 0;
+      } else if (key.name === 'backspace') {
+        if (field.cursor > 0) {
+          field.value = field.value.slice(0, field.cursor - 1) + field.value.slice(field.cursor);
+          field.cursor -= 1;
+        }
+      } else if (key.name === 'delete') {
+        field.value = field.value.slice(0, field.cursor) + field.value.slice(field.cursor + 1);
       } else if (str && str.length === 1 && !key.ctrl && !key.meta && str >= ' ') {
-        field.value += str;
+        field.value = field.value.slice(0, field.cursor) + str + field.value.slice(field.cursor);
+        field.cursor += 1;
       }
       form.error = '';
       return this.render();

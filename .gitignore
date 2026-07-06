@@ -39,3 +39,4 @@ llm.txt
 # Old JavaScript source (keep TypeScript only)
 src/**/*.js
 src/**/*.js.map
+build/
