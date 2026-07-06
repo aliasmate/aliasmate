@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.0] - 2026-07-06
+
+Complete visual redesign and a real full-screen TUI.
+
+### Added
+- **Full-screen TUI** (`aliasmate` with no args): browse commands sorted by usage with a live detail pane (command, directory, env, run history); run with `enter`, fuzzy filter with `/`, create with `n`, edit with `e`, delete with `d`, stats with `s` — everything in-screen
+- **In-TUI forms** for creating and editing commands (name validation, path-mode toggle, env capture) — no more prompt round-trips
+- `aliasmate prev [name]` opens the TUI form prefilled with your captured command; still saves directly when run non-interactively (scripts/CI)
+- `aliasmate save` and `aliasmate edit <name>` open the TUI form
+
+### Changed
+- **New design language**: terracotta accent, quiet grays, flat borderless tables, lowercase labels — content first, chrome barely visible
+- `list`/`search` render a flat width-aware table; `stats` and `recent` restyled to match
+- Filter matches on command names rank above matches in command text/directories
+- Clearing a filter keeps the same row highlighted
+- Removed the `inquirer` dependency entirely (lighter install, faster startup)
+
 ## [2.0.0] - 2026-07-06
 
 Complete ground-up rewrite focused on performance, modularity, and day-to-day usability. Your saved commands, aliases, and run history carry over unchanged.

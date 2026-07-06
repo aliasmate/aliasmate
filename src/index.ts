@@ -39,16 +39,14 @@ program
 
 program
   .command('save')
-  .description('Interactively save a new command')
-  .option('--no-validate', 'Skip validation checks')
-  .action((options) => wrap(async () => (await import('./cli/save')).saveHandler(options)));
+  .description('Open the TUI with a blank new-command form')
+  .action(() => wrap(async () => (await import('./cli/save')).saveHandler()));
 
 program
-  .command('prev <name>')
-  .description('Save your previous shell command under a name')
-  .option('--no-validate', 'Skip validation checks')
-  .action((name: string, options) =>
-    wrap(async () => (await import('./cli/save')).prevHandler(name, options))
+  .command('prev [name]')
+  .description('Capture your previous shell command and open the TUI form prefilled')
+  .action((name: string | undefined) =>
+    wrap(async () => (await import('./cli/save')).prevHandler(name))
   );
 
 program
@@ -73,11 +71,8 @@ program
 
 program
   .command('edit <name>')
-  .description('Edit a saved command')
-  .option('--no-validate', 'Skip validation checks')
-  .action((name: string, options) =>
-    wrap(async () => (await import('./cli/manage')).editHandler(name, options))
-  );
+  .description('Edit a saved command in the TUI')
+  .action((name: string) => wrap(async () => (await import('./cli/manage')).editHandler(name)));
 
 program
   .command('delete <name>')

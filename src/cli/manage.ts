@@ -11,7 +11,7 @@ import {
 import { getUsageStats, getExecutionHistory, clearExecutionHistory } from '../core/recent';
 import { validateSavedCommand } from '../core/validate';
 import { render, timeAgo, truncate } from '../ui/format';
-import { theme, icons, ok, fail, warn } from '../ui/theme';
+import { theme, icons, ok, fail, brandLine } from '../ui/theme';
 
 function usageMaps(): { runCounts: Map<string, number>; lastRuns: Map<string, string> } {
   const stats = getUsageStats();
@@ -32,13 +32,11 @@ export function listHandler(format: ListFormat): void {
     return;
   }
   if (format === 'table') {
-    console.log(
-      `\n${theme.brand('⚡ AliasMate')} ${theme.dim(`· ${count} command${count > 1 ? 's' : ''}`)}\n`
-    );
+    console.log(`\n${brandLine(`· ${count} command${count > 1 ? 's' : ''}`)}\n`);
   }
   console.log(render(commands, format, usageMaps()));
   if (format === 'table') {
-    console.log(theme.dim('\n  ⁺N = saved env vars · run with: aliasmate run <name>'));
+    console.log(theme.faint('\n  ⁺N saved env vars · aliasmate run <name>'));
   }
 }
 
@@ -49,9 +47,7 @@ export function searchHandler(query: string): void {
     console.log(theme.dim(`No commands match "${query}".`));
     return;
   }
-  console.log(
-    `\n${theme.brand('⚡')} ${theme.heading(`${count} match${count > 1 ? 'es' : ''} for "${query}"`)}\n`
-  );
+  console.log(`\n${brandLine(`· ${count} match${count > 1 ? 'es' : ''} for "${query}"`)}\n`);
   console.log(render(matches, 'table', usageMaps()));
 }
 
@@ -74,21 +70,27 @@ export async function deleteHandler(name: string, options: { force?: boolean }):
   ok(`Deleted ${theme.name(name)}`);
 }
 
-export async function editHandler(name: string, options: { validate?: boolean }): Promise<void> {
+export async function editHandler(name: string): Promise<void> {
   const existing = getCommand(name);
   if (!existing) {
     fail(`Command "${name}" not found`);
     process.exitCode = 1;
     return;
   }
-  const { promptCommandDetails } = await import('../ui/prompts');
-  const details = await promptCommandDetails({ name, ...existing }, process.cwd());
-  const { saveCommand } = await import('../core/commands');
-  saveCommand(details);
-  if (options.validate !== false) {
-    for (const issue of validateSavedCommand(getCommand(name)!)) warn(issue.message);
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    fail('Editing needs an interactive terminal.');
+    process.exitCode = 1;
+    return;
   }
-  ok(`Updated ${theme.name(name)}`);
+  const { interactiveHome } = await import('../ui/interactive');
+  await interactiveHome({
+    name,
+    command: existing.command,
+    directory: existing.directory,
+    pathMode: existing.pathMode ?? 'saved',
+    env: existing.env,
+    editing: name,
+  });
 }
 
 export function aliasHandler(
@@ -140,36 +142,35 @@ export function recentHandler(options: { limit?: number; clear?: boolean }): voi
     if (rows.length >= (options.limit ?? 15)) break;
   }
   const counts = new Map(stats.map((s) => [s.name, s.runCount]));
-  console.log(theme.heading('\nRecent commands:\n'));
+  console.log(`\n${brandLine('· recent')}\n`);
   rows.forEach((row, i) => {
     const runs = counts.get(row.name) ?? 0;
     console.log(
-      `  ${theme.accent(`@${i}`)}  ${theme.name(row.name.padEnd(20))} ${theme.dim(
+      `  ${theme.accent(`@${i}`.padEnd(4))} ${theme.name(row.name.padEnd(20))} ${theme.dim(
         `${timeAgo(row.at)} · ${runs} run${runs === 1 ? '' : 's'}`
       )}`
     );
   });
-  console.log(theme.dim('\nRe-run instantly: aliasmate run @0'));
+  console.log(theme.faint('\n  re-run instantly: aliasmate run @0'));
 }
 
 export function statsHandler(): void {
   const stats = getUsageStats();
   const commands = listCommands();
   const total = getExecutionHistory().length;
-  console.log(theme.heading('\n📊 Your AliasMate stats\n'));
-  console.log(`  ${theme.dim('Saved commands:')} ${Object.keys(commands).length}`);
-  console.log(`  ${theme.dim('Total runs:')}     ${total}\n`);
+  console.log(`\n${brandLine('· stats')}\n`);
+  console.log(`  ${theme.faint('commands'.padEnd(10))}${Object.keys(commands).length}`);
+  console.log(`  ${theme.faint('runs'.padEnd(10))}${total}\n`);
   const top = stats.slice(0, 10);
   if (top.length === 0) {
-    console.log(theme.dim('  Run something to start building stats!'));
+    console.log(theme.dim('  Run something to start building stats.'));
     return;
   }
-  console.log(theme.heading('  Most used:\n'));
   const max = top[0].runCount;
   for (const s of top) {
-    const bar = '█'.repeat(Math.max(1, Math.round((s.runCount / max) * 20)));
+    const bar = '▮'.repeat(Math.max(1, Math.round((s.runCount / max) * 24)));
     console.log(
-      `  ${theme.name(s.name.padEnd(20))} ${theme.accent(bar)} ${s.runCount}  ${theme.dim(timeAgo(s.lastRunAt))}`
+      `  ${theme.name(s.name.padEnd(20))} ${theme.accent(bar)} ${theme.dim(String(s.runCount))}  ${theme.faint(timeAgo(s.lastRunAt))}`
     );
   }
 }

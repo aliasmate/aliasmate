@@ -29,6 +29,17 @@ export const RESERVED_NAMES = new Set([
   'help',
 ]);
 
+/** Naming rules shared by every save surface (CLI args, prompts, TUI form). */
+export function validateCommandName(value: string): true | string {
+  const name = value.trim();
+  if (!name) return 'Name cannot be empty';
+  if (/\s/.test(name)) return 'Name cannot contain spaces — try dashes: build-prod';
+  if (!/^[\w.:-]+$/.test(name)) return 'Only letters, digits, and - _ . : are allowed';
+  if (name.startsWith('@')) return 'Names starting with @ are reserved for recent commands';
+  if (RESERVED_NAMES.has(name)) return `"${name}" is a reserved word — pick another name`;
+  return true;
+}
+
 export function listCommands(): CommandMap {
   return configFile.read() as CommandMap;
 }

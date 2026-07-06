@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { theme } from './theme';
 
 export interface Column {
   header: string;
@@ -10,8 +10,6 @@ export interface Column {
   /** Style applied to cell text (after truncation). */
   style?: (text: string, rowIndex: number) => string;
 }
-
-const H = '─';
 
 /** Visible length, ignoring ANSI codes. */
 // eslint-disable-next-line no-control-regex
@@ -31,15 +29,16 @@ export function terminalWidth(): number {
 }
 
 /**
- * Render a width-aware table with rounded borders. Columns share leftover
- * space by their flex weight and are truncated with an ellipsis.
+ * Flat, borderless table: dim uppercase headers, a hairline rule, clean rows.
+ * Columns share leftover space by flex weight and truncate with an ellipsis.
  */
 export function renderTable(
   columns: Column[],
   rows: string[][],
   maxWidth = terminalWidth()
 ): string {
-  const chrome = columns.length * 3 + 1; // "│ cell │ cell │"
+  const gutter = 2;
+  const chrome = gutter + (columns.length - 1) * 2;
   const available = Math.max(
     maxWidth - chrome,
     columns.reduce((s, c) => s + c.min, 0)
@@ -59,31 +58,28 @@ export function renderTable(
     return Math.min(Math.max(col.min, flexed), contentMax);
   });
 
-  const line = (l: string, m: string, r: string) =>
-    chalk.gray(l + widths.map((w) => H.repeat(w + 2)).join(m) + r);
-  const sep = chalk.gray('│');
-
-  const header = widths
-    .map((w, i) =>
-      chalk.bold.gray(fit(columns[i].header.toUpperCase(), w, columns[i].align ?? 'left'))
-    )
-    .join(` ${sep} `);
-
-  const body = rows.map((row, rowIndex) =>
+  const indent = ' '.repeat(gutter);
+  const header =
+    indent +
     widths
-      .map((w, i) => {
-        const col = columns[i];
-        const cell = fit(row[i] ?? '', w, col.align ?? 'left');
-        return col.style ? col.style(cell, rowIndex) : cell;
-      })
-      .join(` ${sep} `)
+      .map((w, i) =>
+        theme.faint(fit(columns[i].header.toUpperCase(), w, columns[i].align ?? 'left'))
+      )
+      .join('  ');
+  const rule =
+    indent + theme.faint('─'.repeat(widths.reduce((s, w) => s + w, 0) + (widths.length - 1) * 2));
+
+  const body = rows.map(
+    (row, rowIndex) =>
+      indent +
+      widths
+        .map((w, i) => {
+          const col = columns[i];
+          const cell = fit(row[i] ?? '', w, col.align ?? 'left');
+          return col.style ? col.style(cell, rowIndex) : cell;
+        })
+        .join('  ')
   );
 
-  return [
-    line('╭', '┬', '╮'),
-    `${sep} ${header} ${sep}`,
-    line('├', '┼', '┤'),
-    ...body.map((r) => `${sep} ${r} ${sep}`),
-    line('╰', '┴', '╯'),
-  ].join('\n');
+  return [header, rule, ...body].join('\n');
 }

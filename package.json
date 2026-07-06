@@ -1,6 +1,6 @@
 {
   "name": "aliasmate",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A CLI utility to save, manage, and re-run shell commands with their working directories",
   "main": "dist/index.js",
   "bin": {
@@ -48,16 +48,12 @@
   },
   "homepage": "https://github.com/aliasmate/aliasmate#readme",
   "dependencies": {
-    "@types/inquirer-autocomplete-prompt": "^2.0.2",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
-    "execa": "^5.1.1",
-    "inquirer": "^8.2.6",
-    "inquirer-autocomplete-prompt": "^2.0.1"
+    "execa": "^5.1.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
-    "@types/inquirer": "^8.2.10",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",

@@ -16,32 +16,43 @@ Requires Node.js 18+. Works on macOS, Linux, and Windows.
 ## Quick start
 
 ```bash
-# Run any command, then save it under a name
+# Run any command, then capture it — the TUI opens with everything prefilled
 npm run build -- --production
 aliasmate prev build
 
 # Run it later, from any directory — it executes back in the project folder
 aliasmate run build
 
-# Or just open the interactive menu
+# Or open the full-screen TUI
 aliasmate
 ```
 
-Running `aliasmate` with no arguments opens an interactive menu: browse your commands sorted by how often you use them, and run, edit, or delete with a couple of keystrokes.
+Running `aliasmate` with no arguments opens a full-screen TUI: your commands sorted by usage with a live detail pane. Everything happens in-screen:
+
+| Key | Action |
+|-----|--------|
+| `↑↓` / `jk` | move |
+| `enter` | run selected command |
+| `/` | fuzzy filter (type to narrow) |
+| `n` | new command (in-TUI form) |
+| `e` | edit selected (in-TUI form) |
+| `d` | delete (with confirm) |
+| `s` | usage stats |
+| `q` / `esc` | quit |
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `aliasmate` | Interactive menu (run/save/edit/delete/stats) |
-| `aliasmate prev <name>` | Save your previous shell command |
-| `aliasmate save` | Save a command interactively |
+| `aliasmate` | Full-screen TUI (browse/run/create/edit/delete/stats) |
+| `aliasmate prev [name]` | Capture your last shell command → TUI form, prefilled (saves directly when scripted) |
+| `aliasmate save` | Open the TUI with a blank new-command form |
 | `aliasmate run <name> [path]` | Run a saved command, optionally in a different directory |
 | `aliasmate run @0` | Re-run your most recent command (`@1`, `@2`, …) |
 | `aliasmate run <name> --dry-run [--verbose]` | Preview without executing |
 | `aliasmate list` (`ls`) | List commands (`--format table\|json\|yaml\|compact`) |
 | `aliasmate search <query>` (`find`) | Search by name, text, or directory |
-| `aliasmate edit <name>` | Edit a command (text, directory, path mode, env vars) |
+| `aliasmate edit <name>` | Edit a command in the TUI form |
 | `aliasmate delete <name>` (`rm`) | Delete a command (`-f` skips confirmation) |
 | `aliasmate alias <short> <name>` | Create a shortcut alias (`--list`, `--remove <a>`) |
 | `aliasmate recent` | Recently run commands with `@N` indices (`--clear`) |

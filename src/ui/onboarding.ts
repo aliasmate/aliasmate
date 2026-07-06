@@ -33,22 +33,26 @@ export function maybeShowOnboarding(currentVersion: string): boolean {
 
   if (firstRun) {
     console.log();
-    console.log(theme.brand('  ⚡ Welcome to AliasMate!'));
-    console.log(theme.dim('  Save commands once, run them from anywhere.\n'));
     console.log(
-      `  ${icons.spark} After running any command:  ${theme.name('aliasmate prev <name>')}`
-    );
-    console.log(`  ${icons.run} Run it from anywhere:       ${theme.name('aliasmate run <name>')}`);
-    console.log(
-      `  📋 Browse everything:          ${theme.name('aliasmate')} ${theme.dim('(interactive menu)')}`
+      ` ${icons.dot} ${theme.heading('aliasmate')} ${theme.dim('· save commands once, run them from anywhere')}`
     );
     console.log();
-    console.log(theme.dim('  Tip: install tab completion with "aliasmate completion install"'));
+    console.log(
+      `   ${theme.faint('capture'.padEnd(9))}${theme.dim('after any command:')}  aliasmate prev <name>`
+    );
+    console.log(
+      `   ${theme.faint('run'.padEnd(9))}${theme.dim('from anywhere:')}      aliasmate run <name>`
+    );
+    console.log(
+      `   ${theme.faint('browse'.padEnd(9))}${theme.dim('full-screen TUI:')}    aliasmate`
+    );
+    console.log();
+    console.log(theme.faint('   tab completion: aliasmate completion install'));
     console.log();
   } else {
     console.log(
       theme.dim(
-        `\n${icons.spark} AliasMate updated to v${currentVersion} — see CHANGELOG for details.\n`
+        `\n${icons.dot} aliasmate updated to v${currentVersion} — see CHANGELOG for details.\n`
       )
     );
   }
